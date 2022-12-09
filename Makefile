@@ -28,6 +28,7 @@ ifeq ($(shell uname), Darwin)
 
 
     # Built-in Compile Variables
+	C					:= gcc
 	CXX					:= g++
     CXXFLAGS			+= -std=c++20 -Wall -Wextra -pedantic -Werror
 
@@ -40,9 +41,6 @@ ifeq ($(shell uname), Darwin)
 
     # Environment Variables
 	ENV					:= MallocNanoZone=0
-
-
-    
 
 
     # Functions
@@ -113,13 +111,14 @@ SRCDIR					:= src
 
 ############################## Compile Variables ###############################
 
-SRC						:= $(call rfind,									   \
-							   $(SRCDIR),									   \
-							   *.cpp)
+SRC						:= $(call rfind, $(SRCDIR),	*.cpp)					   \
+						   $(call rfind, $(LIBDIR),	*.cpp *.c)
 
 BUILD_FOLDERS			:= $(BUILDDIR)/										   \
 						   $(addprefix $(BUILDDIR)/,$(sort $(dir $(SRC))))
-DEPENDS					:= $(addprefix $(BUILDDIR)/, $(SRC:.cpp=.d))
+DEPENDS					:= $(addprefix $(BUILDDIR)/,						   \
+							$(filter %.d,$(SRC:.c=.d))						   \
+							$(filter %.d,$(SRC:.cpp=.d)))
 ERRLOG					:= $(LOGDIR)/err.log
 EXEC					:= $(RLSDIR)/$(TIMESTAMP).exe
 INCLUDES				:= $(addprefix -I,									   \
@@ -128,7 +127,9 @@ INCLUDES				:= $(addprefix -I,									   \
 		      				   $(sort $(call listparents, $(sort $(dir $(call  \
 							   	   rfind,$(SRCDIR),*.h *.hpp))),$(SRCDIR))))
 MAIN					:= $(BUILDDIR)/main.exe
-OBJS					:= $(addprefix $(BUILDDIR)/, $(SRC:.cpp=.o))
+OBJS					:= $(addprefix $(BUILDDIR)/,						   \
+							$(filter %.o,$(SRC:.c=.o))						   \
+							$(filter %.o,$(SRC:.cpp=.o)))
 
 ################################ Default Target ################################
 
@@ -301,7 +302,7 @@ endif
 
 
 test: --clear
-	@echo $(LIBS)
+	@echo $(OBJS)
 	@$(call printp,															   \
 		$(BACKSPACE)$(NEWLINE),												   \
 		$(BACKSPACE)$(GREEN)Test Complete,									   \
@@ -357,3 +358,25 @@ $(BUILDDIR)/%.o: %.cpp
 		$(PRINT) "$(RED)==> "												&& \
 		$(PRINT) "$(ORANGE)$@"												&& \
 		$(PRINT) "$(DEFAULT)$(NEWLINE)")				 					   \
+
+
+$(BUILDDIR)/%.o: %.c
+	@$(call print,															   \
+		$(BACKSPACE)$(NEWLINE),												   \
+		$(BACKSPACE)$(ORANGE)$<$(SPACE)										   \
+		$(BACKSPACE)$(YELLOW)==>$(SPACE)									   \
+		$(BACKSPACE)$(DEFAULT)$(NULL))
+
+	@$(C) $(CFLAGS) $(DEBUG) $(INCLUDES) -MMD -MP -c $<						   \
+		-o $@																   \
+		2>> $(ERRLOG)														   \
+	&& 	(																	   \
+		$(PRINT) "$(BACKSPACE)$(BACKSPACE)$(BACKSPACE)$(BACKSPACE)"			&& \
+		$(PRINT) "$(GREEN)==> "												&& \
+		$(PRINT) "$(ORANGE)$@"												&& \
+		$(PRINT) "$(DEFAULT)$(NEWLINE)")				 					   \
+	|| 	(																	   \
+		$(PRINT) "$(BACKSPACE)$(BACKSPACE)$(BACKSPACE)$(BACKSPACE)"			&& \
+		$(PRINT) "$(RED)==> "												&& \
+		$(PRINT) "$(ORANGE)$@"												&& \
+		$(PRINT) "$(DEFAULT)$(NEWLINE)")
