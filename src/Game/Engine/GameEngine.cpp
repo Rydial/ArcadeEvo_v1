@@ -13,6 +13,8 @@
 
 void GameEngine::init()
 {
+    /************************* Engine Initialization **************************/
+
     try
     {
         // Initialize Render Engine
@@ -29,7 +31,8 @@ void GameEngine::init()
         return;
     }
 
-    // Engine Initialization Success
+    /*********************** Post Engine Initialization ***********************/
+
     isRunning = true;
     debug::print("Main Engine Initialized");
 }

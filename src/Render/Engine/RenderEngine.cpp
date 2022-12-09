@@ -16,6 +16,9 @@ void RenderEngine::init()
     // Create Window
     initWindow();
 
+    // Initialize Rendering Core
+    initCore();
+
     // Output Engine Initialization Success
     debug::print("Render Engine Initialized");
 }
@@ -36,8 +39,7 @@ void RenderEngine::cleanup()
     debug::print("Render Engine Cleaned");
 }
 
-/************************** Init Stage Functions **************************/
-
+/**************************** Init Stage Functions ****************************/
 
 void RenderEngine::initWindow()
 {
@@ -56,7 +58,7 @@ void RenderEngine::initWindow()
         SDL_GL_CONTEXT_FLAGS,
         SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
 
-    // Create SDL Window
+    // Create Window
     window = SDL_CreateWindow(
         "ArcadeEvo",
         SDL_WINDOWPOS_UNDEFINED,
@@ -69,4 +71,11 @@ void RenderEngine::initWindow()
     // Create Window Context
     windowContext = SDL_GL_CreateContext(window);
     deleteQueue.emplace([this] () {SDL_GL_DeleteContext(windowContext);});
+}
+
+
+void RenderEngine::initCore()
+{
+    if (!gladLoadGLLoader((GLADloadproc) SDL_GL_GetProcAddress))
+        throw std::runtime_error("Failed to initialize GLAD");
 }

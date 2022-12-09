@@ -42,6 +42,7 @@ private:
     /************************** Init Stage Functions **************************/
 
     void initWindow();
+    void initCore();
 
 public:
 
