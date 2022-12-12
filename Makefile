@@ -9,6 +9,48 @@ endif
 # Linux
 ifeq ($(shell uname), Linux)
 
+	# Directories
+	LIBDIR				:= lib/linux
+
+
+    # Commands
+	CLEAR				:= clear
+	MKDIR				:= mkdir -p
+	RM					:= rm -dfr
+	PRINT				:= printf
+	TIMESTAMP			:= $(shell date -u +%Y-%m-%d_%I-%M-%S)
+
+
+    # Functions
+	listparents			 = $(foreach d,										   \
+							$1,												   \
+							$(if $(filter $2,$(d:/=)),						   \
+								,											   \
+								$(call listparents,$(dir $(d:/=)),$2)) $d)
+    rfind 				 = $(foreach d,										   \
+							$(wildcard $(1:=/*)),							   \
+							$(call rfind,$d,$2) $(filter $(subst *,%,$2),$d))
+
+
+    # Built-in Compile Variables
+	C					:= gcc
+	CFLAGS				:= 
+	CXX					:= g++
+    CXXFLAGS			+= -std=c++20 -Wall -Wextra -pedantic -Werror
+
+
+    # User-Defined Compile Variables
+    DEBUG				:= -g -O0 -fsanitize=address -fsanitize=undefined
+    LIBS				:= $(addprefix -L,$(sort $(dir $(call rfind,		   \
+							$(LIBDIR), 										   \
+							*.a *.so))))
+	LIBS				+= -lSDL2main -lSDL2 -lGL -ldl
+	RELEASE				:= -O2 -DNDEBUG
+
+
+    # Environment Variables
+	ENV					:= 
+
 endif
 
 
@@ -27,23 +69,6 @@ ifeq ($(shell uname), Darwin)
 	TIMESTAMP			:= $(shell date -u +%Y-%m-%d_%I-%M-%S)
 
 
-    # Built-in Compile Variables
-	C					:= gcc
-	CFLAGS				:= 
-	CXX					:= g++
-    CXXFLAGS			+= -std=c++20 -Wall -Wextra -pedantic -Werror
-
-
-    # User-Defined Compile Variables
-    DEBUG				:= -g -O0 -fsanitize=address -fsanitize=undefined
-    LIBS				:= -L$(LIBDIR)/sdl2/lib -lSDL2main -lSDL2
-	RELEASE				:= -O2 -DNDEBUG
-
-
-    # Environment Variables
-	ENV					:= MallocNanoZone=0
-
-
     # Functions
 	listparents			 = $(foreach d,										   \
 							$1,												   \
@@ -53,6 +78,26 @@ ifeq ($(shell uname), Darwin)
     rfind 				 = $(foreach d,										   \
 							$(wildcard $(1:=/*)),							   \
 							$(call rfind,$d,$2) $(filter $(subst *,%,$2),$d))
+
+
+    # Built-in Compile Variables
+	C					:= gcc
+	CFLAGS				:= 
+	CXX					:= g++
+    CXXFLAGS			+= -std=c++20 -Wall -Wextra -pedantic -Werror
+
+
+    # User-Defined Compile Variables
+    DEBUG				:= -g -O0 -fsanitize=address -fsanitize=undefined
+	LIBS				:= $(addprefix -L,$(sort $(dir $(call rfind,		   \
+							$(LIBDIR), 										   \
+							*.a *.so))))
+	LIBS				+= -lSDL2main -lSDL2
+	RELEASE				:= -O2 -DNDEBUG
+
+
+    # Environment Variables
+	ENV					:= MallocNanoZone=0
 
 endif
 
@@ -303,7 +348,7 @@ endif
 
 
 test: --clear
-	@echo $(OBJS)
+	@echo $(LIBS)
 	@$(call printp,															   \
 		$(BACKSPACE)$(NEWLINE),												   \
 		$(BACKSPACE)$(GREEN)Test Complete,									   \
