@@ -16,8 +16,8 @@ void RenderEngine::init()
     // Create Window
     initWindow();
 
-    // Initialize Rendering Core
-    initCore();
+    // Initialize Rendering Core Selected At Startup
+    initSelectedCore();
 
     // Output Engine Initialization Success
     debug::print("Render Engine Initialized");
@@ -74,8 +74,9 @@ void RenderEngine::initWindow()
 }
 
 
-void RenderEngine::initCore()
+void RenderEngine::initSelectedCore()
 {
+    // Initialize GLAD
     if (!gladLoadGLLoader((GLADloadproc) SDL_GL_GetProcAddress))
         throw std::runtime_error("Failed to initialize GLAD");
 }

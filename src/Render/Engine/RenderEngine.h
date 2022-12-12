@@ -31,6 +31,9 @@ private:
 
     /******************************* Variables ********************************/
 
+    // Temp Variables
+    uint32_t core {0}; // 0 : OpenGL, 1 : Vulkan
+
     // Raw Pointers
     struct SDL_Window* window {};
     void* windowContext {};
@@ -42,7 +45,7 @@ private:
     /************************** Init Stage Functions **************************/
 
     void initWindow();
-    void initCore();
+    void initSelectedCore();
 
 public:
 

@@ -29,6 +29,7 @@ ifeq ($(shell uname), Darwin)
 
     # Built-in Compile Variables
 	C					:= gcc
+	CFLAGS				:= 
 	CXX					:= g++
     CXXFLAGS			+= -std=c++20 -Wall -Wextra -pedantic -Werror
 
