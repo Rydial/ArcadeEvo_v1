@@ -9,10 +9,6 @@ endif
 # Linux
 ifeq ($(shell uname), Linux)
 
-	# Directories
-	LIBDIR				:= lib/linux
-
-
     # Commands
 	CLEAR				:= clear
 	MKDIR				:= mkdir -p
@@ -41,10 +37,7 @@ ifeq ($(shell uname), Linux)
 
     # User-Defined Compile Variables
     DEBUG				:= -g -O0 -fsanitize=address -fsanitize=undefined
-    LIBS				:= $(addprefix -L,$(sort $(dir $(call rfind,		   \
-							$(LIBDIR), 										   \
-							*.a *.so))))
-	LIBS				+= -lSDL2main -lSDL2 -lGL -ldl
+	LIBS				:= -lSDL2
 	RELEASE				:= -O2 -DNDEBUG
 
 
@@ -57,10 +50,6 @@ endif
 # Mac OS
 ifeq ($(shell uname), Darwin)
 
-    # Directories
-	LIBDIR				:= lib/macos
-
-
     # Commands
 	CLEAR				:= clear
 	MKDIR				:= mkdir -p
@@ -89,9 +78,6 @@ ifeq ($(shell uname), Darwin)
 
     # User-Defined Compile Variables
     DEBUG				:= -g -O0 -fsanitize=address -fsanitize=undefined
-	LIBS				:= $(addprefix -L,$(sort $(dir $(call rfind,		   \
-							$(LIBDIR), 										   \
-							*.a *.so))))
 	LIBS				+= -lSDL2main -lSDL2
 	RELEASE				:= -O2 -DNDEBUG
 
@@ -151,6 +137,7 @@ endef
 ################################# Directories ##################################
 
 BUILDDIR				:= bin
+LIBDIR					:= lib
 LOGDIR					:= log
 RLSDIR					:= out
 SRCDIR					:= src
@@ -172,6 +159,9 @@ INCLUDES				:= $(addprefix -I,									   \
 							       rfind,$(LIBDIR),*.h *.hpp))),$(LIBDIR)))	   \
 		      				   $(sort $(call listparents, $(sort $(dir $(call  \
 							   	   rfind,$(SRCDIR),*.h *.hpp))),$(SRCDIR))))
+LIBS					:= $(addprefix -L,$(sort $(dir $(call rfind,		   \
+							$(LIBDIR), 										   \
+							*.a *.so)))) $(LIBS)
 MAIN					:= $(BUILDDIR)/main.exe
 OBJS					:= $(addprefix $(BUILDDIR)/,						   \
 							$(filter %.o,$(SRC:.c=.o))						   \
