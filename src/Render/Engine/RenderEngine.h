@@ -14,48 +14,33 @@
 
 class RenderEngine
 {
-private:
-
-    /****************************** DEBUG MACROS ******************************/
-
-#ifdef NDEBUG
-    const bool useValidationLayers {false};
-#else
-    const bool useValidationLayers {true};
-#endif
-
-    /****************************** Data Structs ******************************/
-
-    struct Extent2D
-    {
-        uint32_t width, height;
-    };
+protected:
 
     /******************************* Variables ********************************/
 
-    // Temp Variables
-    uint32_t core {0}; // 0 : OpenGL, 1 : Vulkan
-
     // Raw Pointers
     struct SDL_Window* window {};
-    void* windowContext {};
 
     // Normal Variables
     DeletionQueue deleteQueue {};
-    Extent2D windowExtent {1280, 720};
+    uint32_t frameNumber {0};
 
-    /************************** Init Stage Functions **************************/
+    /******************************* Functions ********************************/
 
-    void initWindow();
-    void initSelectedCore();
+    virtual void setViewport(uint32_t width, uint32_t height) = 0;
 
 public:
 
     /***************************** Main Functions *****************************/
 
-    void init();
-    void render();
-    void cleanup();
+    virtual void init() = 0;
+    int pollEvents();
+    virtual void render() = 0;
+    virtual void cleanup() {deleteQueue.flush();};
+
+    /****************************** Destructors *******************************/
+
+    virtual ~RenderEngine() = default;
 };
 
 
