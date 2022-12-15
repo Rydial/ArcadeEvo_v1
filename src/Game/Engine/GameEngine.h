@@ -26,10 +26,13 @@ private:
 
     /******************************* Variables ********************************/
 
+    // Smart Pointers
     // std::unique_ptr<GameTimer> gameTimer {};
-    bool isRunning {false};
     std::unique_ptr<RenderEngine> renderer {};
     // std::unique_ptr<ScreenManager> screenManager {};
+
+    // Normal Variables
+    bool engineInitialized {false};
 
 public:
 

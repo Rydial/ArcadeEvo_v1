@@ -1,7 +1,8 @@
 #include "GameEngine.h"
 
 #include "Debug.h"
-#include "RenderEngine.h"
+#include "ExitCodes.h"
+#include "Renderers.h"
 
 #include <SDL2/SDL.h>
 
@@ -33,27 +34,30 @@ void GameEngine::init()
 
     /*********************** Post Engine Initialization ***********************/
 
-    isRunning = true;
+    engineInitialized = true;
+
     debug::print("Main Engine Initialized");
 }
 
 
 void GameEngine::run()
 {
-    SDL_Event event {};
+    // Validate Engine Initialization
+    if (!engineInitialized)
+        return;
 
     /******************************* Main Loop ********************************/
 
-    while (isRunning)
+    while (true)
     {
-        /*************************** SDL Event Poll ***************************/
+        /*********************** User Input Processing ************************/
 
-        while (SDL_PollEvent(&event))
-        {
-            // Exit Game (Click 'X' or Alt + F4)
-            if (event.type == SDL_QUIT)
-                isRunning = false;
-        }
+        // Process Window Events
+        if (renderer->pollEvents() == exitcode::EXIT_PROGRAM)
+            break;
+
+        // Process Keyboard Events
+        // ...
 
         /************************* Graphics Rendering *************************/
 
@@ -78,7 +82,7 @@ void GameEngine::cleanup()
 /******************************** Constructors ********************************/
 
 GameEngine::GameEngine()
-    : renderer{std::make_unique<RenderEngine>()}
+    : renderer{std::make_unique<OpenGLRenderer>()}
 {
 
 }
