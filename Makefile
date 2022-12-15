@@ -184,23 +184,13 @@ default: --clear
 
 
 --errlog: $(LOGDIR)
+	@$(NULL) > $(ERRLOG)
 
 ifeq (,$(wildcard $(ERRLOG)))
-
-	@$(NULL) > $(ERRLOG)
 
 	@$(call printp,															   \
 		$(BACKSPACE)$(NEWLINE),												   \
 		$(BACKSPACE)$(GREEN)Error Log Setup,								   \
-		$(BACKSPACE)$(NEWLINE))
-
-else
-
-	@$(NULL) > $(ERRLOG)
-
-	@$(call printp,															   \
-		$(BACKSPACE)$(NEWLINE),												   \
-		$(BACKSPACE)$(GREEN)Error Log Reset,								   \
 		$(BACKSPACE)$(NEWLINE))
 
 endif
@@ -311,7 +301,7 @@ release: --clear $(RLSDIR) --errlog
 		$(PRINT) "$(WHITE) ]$(DEFAULT)$(NEWLINE)$(NEWLINE)")
 
 
-run: --clear
+run: --clear --errlog
 
 ifeq (,$(wildcard $(MAIN)))
 
@@ -327,7 +317,7 @@ else
 		$(BACKSPACE)$(GREEN)Program Started,								   \
 		$(BACKSPACE)$(NEWLINE))
 
-	@$(ENV) ./$(MAIN)
+	@$(ENV) ./$(MAIN) 2>> $(ERRLOG) || true
 
 	@$(call printp,															   \
 		$(BACKSPACE)$(NEWLINE),												   \
