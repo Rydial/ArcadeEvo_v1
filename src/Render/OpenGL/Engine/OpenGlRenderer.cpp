@@ -25,7 +25,7 @@ void OpenGLRenderer::init()
     setViewport(width, height);
 
     // Output Engine Initialization Success
-    debug::print("Render Engine Initialized");
+    DEBUG_PRINT("OpenGL Renderer Initialized");
 }
 
 
@@ -48,7 +48,7 @@ void OpenGLRenderer::cleanup()
     RenderEngine::cleanup();
 
     // Output Engine Cleanup Success
-    debug::print("OpenGL Renderer Cleaned");
+    DEBUG_PRINT("OpenGL Renderer Cleaned");
 }
 
 /**************************** Init Stage Functions ****************************/

@@ -23,12 +23,12 @@ void GameEngine::init()
     }
     catch (const std::runtime_error& e)
     {
-        debug::printf("%\nTerminating Program.", e.what());
+        DEBUG_PRINT("%\nTerminating Program.", e.what());
         return;
     }
     catch (...)
     {
-        debug::print("Unknown Error Caught.\nTerminating Program.");
+        DEBUG_PRINT("Unknown Error Caught.\nTerminating Program.");
         return;
     }
 
@@ -36,7 +36,7 @@ void GameEngine::init()
 
     engineInitialized = true;
 
-    debug::print("Main Engine Initialized");
+    DEBUG_PRINT("Main Engine Initialized");
 }
 
 
@@ -76,7 +76,7 @@ void GameEngine::cleanup()
     SDL_Quit();
 
     // Output Engine Cleanup Success
-    debug::print("Main Engine Cleaned");
+    DEBUG_PRINT("Main Engine Cleaned");
 }
 
 /******************************** Constructors ********************************/
