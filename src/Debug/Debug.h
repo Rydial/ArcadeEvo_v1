@@ -8,36 +8,29 @@
 
 
 ////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////// MACROS ////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+
+#ifndef NDEBUG  // Debug Mode
+
+    #define DEBUG_PRINT(...)  debug::print(__VA_ARGS__)
+
+#else           // Release Mode
+
+    #define DEBUG_PRINT(...)
+
+#endif
+
+
+////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////// DEBUG /////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
 
 namespace debug
 {
-    /********************************* Macros *********************************/
-
-    // #define stringify(x) (#x)       // Return identifier or literal value
-    // #define xstringify(x) (stringify(x))
-
-    /******************************* Constants ********************************/
-
-#ifdef NDEBUG
-    constexpr bool runtimeLogging {false};
-#else
-    constexpr bool runtimeLogging {true};
-
-    constexpr unsigned int GREEN {0x00000000};
-    constexpr unsigned int RED {0x00000001};
-
-#endif
-
     /******************************** Concepts ********************************/
-
-    template<typename T>
-    concept Printable = requires(T t)
-    {
-        {std::cout << t} -> std::same_as<std::ostream&>;
-    };
 
     template<typename T>
     concept Stringable = requires (std::ostringstream oss, T t)
@@ -47,25 +40,17 @@ namespace debug
 
     /***************************** Main Functions *****************************/
 
-    /*
-        Logs message
-    */
-    template <Printable T>
-    void print(const T& message)
-    {
-        std::cout << '\n' << message << '\n';
-    }
-
-    /*
-        Logs formatted message
+    /* 
+        Returns Formatted String
     */
     template <Stringable ...Args>
-    void printf(const std::string&& format, Args&&... args)
+    std::string str(const std::string&& format, Args&&... args)
     {
-        /******************** Message String Construction *********************/
-        
         size_t numOfArgs {sizeof...(Args)}, argIndex {};
-        std::stringstream message {};
+        std::stringstream sstream {};
+
+        /************************ String Construction *************************/
+        
         auto iter {format.begin()};
 
         ([&] ()
@@ -76,32 +61,44 @@ namespace debug
                 {
                     if (*iter == '%')
                     {
-                        message << args;
+                        sstream << args;
                         ++argIndex;
                         ++iter;
                         return;
                     }
                     else
-                        message << *iter;
+                        sstream << *iter;
                 }
             }
         }(), ...);
 
         for (; iter != format.end(); ++iter)
-            message << *iter;
+            sstream << *iter;
 
-        /**********************************************************************/
+        /************************* String Validation **************************/
+    
+        if (argIndex != numOfArgs)
+        {
+            std::cout << "\n[ DEBUG ] str() Error: Number of variables in "
+                "format string exceeded number of arguments\n";
 
-        // Error Check
-        if (numOfArgs == 0)
-            print("[ DEBUG ] printf() failed: No arguments provided");
-        else if (argIndex != numOfArgs)
-            print("[ DEBUG ] printf() failed: Number of format values does not "
-                  "match number of arguments");
+            std::abort();
+        }
 
-        // Print Constructed Message String
-        else
-            print(message.str());
+        /**********************************************************************/   
+    
+        return sstream.str();
+    }
+
+
+    /*
+        Logs formatted message
+    */
+    template <Stringable ...Args>
+    void print(const std::string&& format, Args&&... args)
+    {
+        // Print Formatted Message
+        std::cout << '\n' << str(std::move(format), args...) << '\n';
     }
 }
 
