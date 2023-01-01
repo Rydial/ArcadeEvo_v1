@@ -24,22 +24,31 @@
 
 
 ////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////// CONCEPTS ///////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+
+template<typename T>
+concept Printable = requires(T t)
+{
+    {std::cout << t} -> std::same_as<std::ostream&>;
+};
+
+
+template<typename T>
+concept Stringable = requires (std::ostringstream oss, T t)
+{
+    oss << t;
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////// DEBUG /////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
 
 namespace debug
 {
-    /******************************** Concepts ********************************/
-
-    template<typename T>
-    concept Stringable = requires (std::ostringstream oss, T t)
-    {
-        oss << t;
-    };
-
-    /***************************** Main Functions *****************************/
-
     /* 
         Returns Formatted String
     */
@@ -88,6 +97,22 @@ namespace debug
         /**********************************************************************/   
     
         return sstream.str();
+    }
+
+
+    /*
+        Logs message
+    */
+    template <Printable T>
+    void print(const T& message)
+    {
+        std::cout << '\n' << message << '\n';
+    }
+
+    template <Printable T>
+    void print(const T&& message)
+    {
+        std::cout << '\n' << message << '\n';
     }
 
 
