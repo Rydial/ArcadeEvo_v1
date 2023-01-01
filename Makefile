@@ -139,7 +139,7 @@ endef
 BUILDDIR				:= bin
 LIBDIR					:= lib
 LOGDIR					:= log
-RLSDIR					:= out
+RLSDIR					:= rls
 SRCDIR					:= src
 
 ############################## Compile Variables ###############################
