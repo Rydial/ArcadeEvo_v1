@@ -82,7 +82,7 @@ void GameEngine::cleanup()
 /******************************** Constructors ********************************/
 
 GameEngine::GameEngine()
-    : renderer{std::make_unique<OpenGLRenderer>()}
+    : renderer{std::make_unique<GLRenderer>()}
 {
 
 }
