@@ -3,12 +3,13 @@
 #include "Debug.h"
 #include "ExitCodes.h"
 #include "Renderers.h"
+#include "ScreenManager.h"
 
 #include <SDL2/SDL.h>
 
 
 ////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////// GAME ENGINE //////////////////////////////////
+///////////////////////////////// Game Engine //////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
 
@@ -16,19 +17,26 @@ void GameEngine::init()
 {
     /************************* Engine Initialization **************************/
 
-    try
-    {
+    try                                                                       
+    {                                                                         
         // Initialize Render Engine
         renderer->init();
+
+        // Initialize Screens
+        screenManager->init();                                                             
     }
-    catch (const std::runtime_error& e)
-    {
-        DEBUG_PRINT("%\nTerminating Program.", e.what());
-        return;
-    }
+
+    // Catch Runtime Errors (Expected Errors)
+    catch (const std::runtime_error& e)                                       
+    {                                                                         
+        DEBUG_PRINT(e.what());                     
+        return;                                                                 
+    }     
+
+    // Catch Unexpected Errors
     catch (...)
     {
-        DEBUG_PRINT("Unknown Error Caught.\nTerminating Program.");
+        DEBUG_PRINT("!Unknown Error Caught!");
         return;
     }
 
@@ -36,7 +44,7 @@ void GameEngine::init()
 
     engineInitialized = true;
 
-    DEBUG_PRINT("Main Engine Initialized");
+    DEBUG_PRINT("Game Engine Initialized");
 }
 
 
@@ -44,7 +52,10 @@ void GameEngine::run()
 {
     // Validate Engine Initialization
     if (!engineInitialized)
+    {
+        DEBUG_PRINT("Engine not initialized. Cannot run program.");
         return;
+    }
 
     /******************************* Main Loop ********************************/
 
@@ -61,14 +72,34 @@ void GameEngine::run()
 
         /************************* Graphics Rendering *************************/
 
-        // Render Game Window and Graphics
-        renderer->render();
+        try                                                                       
+        {                                                                         
+            // Render Game Window and Graphics
+            renderer->render();                                                              
+        }
+
+        // Catch Runtime Errors (Expected Errors)
+        catch (const std::runtime_error& e)                                       
+        {                                                                         
+            DEBUG_PRINT("%\nTerminating Program.", e.what());                     
+            return;                                                                 
+        }     
+
+        // Catch Unexpected Errors
+        catch (...)
+        {
+            DEBUG_PRINT("Unknown Error Caught.\nTerminating Program.");
+            return;
+        }
     }
 }
 
 
 void GameEngine::cleanup()
 {
+    // Cleanup Screens
+    screenManager->cleanup();
+
     // Cleanup Render Engine
     renderer->cleanup(); 
 
@@ -82,7 +113,8 @@ void GameEngine::cleanup()
 /******************************** Constructors ********************************/
 
 GameEngine::GameEngine()
-    : renderer{std::make_unique<GLRenderer>()}
+    : renderer{std::make_unique<GLRenderer>()},
+      screenManager{std::make_unique<ScreenManager>()}
 {
 
 }
