@@ -4,20 +4,62 @@
 
 #include <iostream>
 #include <sstream>
-#include <string>
+#include <string_view>
 
 
 ////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////// MACROS ////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
+/*********************** Macro Overload Implementation ************************/
+
+#define CONCAT(x, y) x ## y
+#define SELECT(macro, num) CONCAT(macro ## _, num)
+#define VA_SIZE(_0, _1, _2, _3, count, ...) count // ad nauseam
+#define COMPOSE(name, args) name args
+#define EXPAND() ,,,
+#define VA_MACRO(macro, ...)                                                   \
+    SELECT(                                                                    \
+        macro,                                                                 \
+        COMPOSE(                                                               \
+            VA_SIZE,                                                           \
+            (EXPAND __VA_ARGS__ (), 0, 3, 2, 1)))(__VA_ARGS__)
+
+/* 
+    Notes:
+        - How To Use:
+            #define NAME(...) VA_MACRO(NAME, __VA_ARGS__)
+            #define NAME_<Number>(<Arguments>) <String>
+
+        - Number of possible arguments is determined by number of arguments
+        added to VA_SIZE
+
+        - The EXPAND macro must consist of the same number of commas as the
+        number of arguments determined by VA_SIZE
+
+        - The VA_MACRO macro's number arguments must match the VA_SIZE number
+        arguments
+*/
+
+/*********************************** Macros ***********************************/
+
+#define THROW_ERROR(...) debug::throwError(__FILE__, __LINE__, __VA_ARGS__)
+#define STRINGIFY(x) (#x)
+
+/******************************************************************************/
 
 #ifndef NDEBUG  // Debug Mode
 
+    #define DEBUG_ASSERT(x)                                                    \
+    {                                                                          \
+        if (!(x))                                                              \
+            THROW_ERROR("%() Assertion Error: '%'", __FUNCTION__, #x);         \
+    }
     #define DEBUG_PRINT(...)  debug::print(__VA_ARGS__)
 
 #else           // Release Mode
 
+    #define DEBUG_ASSERT(x)
     #define DEBUG_PRINT(...)
 
 #endif
@@ -49,11 +91,13 @@ concept Stringable = requires (std::ostringstream oss, T t)
 
 namespace debug
 {
+    /*************************** Template Functions ***************************/
+
     /* 
         Returns Formatted String
     */
     template <Stringable ...Args>
-    std::string str(const std::string&& format, Args&&... args)
+    std::string str(std::string_view format, Args&&... args)
     {
         size_t numOfArgs {sizeof...(Args)}, argIndex {};
         std::stringstream sstream {};
@@ -120,10 +164,27 @@ namespace debug
         Logs formatted message
     */
     template <Stringable ...Args>
-    void print(const std::string&& format, Args&&... args)
+    void print(std::string_view format, Args&&... args)
     {
         // Print Formatted Message
-        std::cout << '\n' << str(std::move(format), args...) << '\n';
+        print(str(format, args...));
+    }
+
+    /*
+        Throws a runtime error with the formatted message
+    */
+    template <Stringable ...Args>
+    void throwError(
+        std::string_view file,
+        int line,
+        std::string_view format,
+        Args&&... args)
+    {
+        // Throw Error
+        throw std::runtime_error(
+            debug::str(
+                debug::str("% | % (%)", format, file, line),
+                args...));
     }
 }
 
