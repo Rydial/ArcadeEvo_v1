@@ -141,10 +141,13 @@ LIBDIR					:= lib
 LOGDIR					:= log
 RLSDIR					:= rls
 SRCDIR					:= src
+TESTDIR					:= test
 
 ############################## Compile Variables ###############################
 
 SRC						:= $(call rfind, $(SRCDIR),	*.cpp)					   \
+						   $(call rfind, $(LIBDIR),	*.cpp *.c)
+TESTSRC					:= $(call rfind, $(TESTDIR), *.cpp)					   \
 						   $(call rfind, $(LIBDIR),	*.cpp *.c)
 
 BUILD_FOLDERS			:= $(BUILDDIR)/										   \
@@ -166,6 +169,7 @@ MAIN					:= $(BUILDDIR)/main.exe
 OBJS					:= $(addprefix $(BUILDDIR)/,						   \
 							$(filter %.o,$(SRC:.c=.o))						   \
 							$(filter %.o,$(SRC:.cpp=.o)))
+TESTEXEC				:= $(TESTDIR)/test.exe
 
 ################################ Default Target ################################
 
@@ -281,7 +285,7 @@ help: --clear
 	@$(call print,															   \
 		$(BACKSPACE)$(NEWLINE),												   \
 		$(BACKSPACE)$(YELLOW)test$(TAB)$(TAB)		   						   \
-		$(BACKSPACE)$(WHITE) : A test command.								   \
+		$(BACKSPACE)$(WHITE) : Build and run a test program.				   \
 		$(BACKSPACE)$(NEWLINE)$(NEWLINE))
 
 
@@ -327,11 +331,29 @@ else
 endif
 
 
-test: --clear
-	@echo $(LIBS)
+test: --clear --errlog
+	@$(CXX) $(CXXFLAGS) $(DEBUG) $(INCLUDES) $(TESTSRC) $(LIBS)		  		   \
+		-o $(TESTEXEC)														   \
+		2>> $(ERRLOG); [ $$? -eq 0 ]										   \
+	&& 	(																	   \
+		$(PRINT) "$(NEWLINE)$(WHITE)[ "										&& \
+		$(PRINT) "$(GREEN)Test Program Compiled"							&& \
+		$(PRINT) "$(WHITE) ]$(DEFAULT)$(NEWLINE)")							   \
+	||	(																	   \
+		$(PRINT) "$(NEWLINE)$(WHITE)[ "										&& \
+		$(PRINT) "$(RED)Test Program Compile Failed"						&& \
+		$(PRINT) "$(WHITE) ]$(DEFAULT)$(NEWLINE)$(NEWLINE)")
+
 	@$(call printp,															   \
 		$(BACKSPACE)$(NEWLINE),												   \
-		$(BACKSPACE)$(GREEN)Test Complete,									   \
+		$(BACKSPACE)$(GREEN)Test Program Started,								   \
+		$(BACKSPACE)$(NEWLINE))
+
+	@$(ENV) ./$(TESTEXEC) 2>> $(ERRLOG) || true
+
+	@$(call printp,															   \
+		$(BACKSPACE)$(NEWLINE),												   \
+		$(BACKSPACE)$(GREEN)Test Program Finished,								   \
 		$(BACKSPACE)$(NEWLINE)$(NEWLINE))
 
 ########################### Compilation Dependencies ###########################
