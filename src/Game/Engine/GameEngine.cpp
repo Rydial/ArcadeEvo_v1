@@ -1,8 +1,10 @@
 #include "GameEngine.h"
 
 #include "Debug.h"
+#include "EntityComponentSystem.h"
 #include "ExitCodes.h"
 #include "Renderers.h"
+#include "RenderQueue.h"
 #include "ScreenManager.h"
 
 #include <SDL2/SDL.h>
@@ -22,8 +24,14 @@ void GameEngine::init()
         // Initialize Render Engine
         renderer->init();
 
+        // Initialize Entity Component System
+        ecs->init();
+
         // Initialize Screens
-        screenManager->init();                                                             
+        screenManager->init();
+
+        // Initialize Render Queue
+        renderQueue->setBuilder([this] () {screenManager->fillRenderQueue();});                                                           
     }
 
     // Catch Runtime Errors (Expected Errors)
@@ -67,8 +75,8 @@ void GameEngine::run()
         if (renderer->pollEvents() == exitcode::EXIT_PROGRAM)
             break;
 
-        // Process Keyboard Events
-        // ...
+        // Update Current Screen
+        screenManager->update();
 
         /************************* Graphics Rendering *************************/
 
@@ -113,8 +121,10 @@ void GameEngine::cleanup()
 /******************************** Constructors ********************************/
 
 GameEngine::GameEngine()
-    : renderer{std::make_unique<GLRenderer>()},
-      screenManager{std::make_unique<ScreenManager>()}
+    : ecs{std::make_unique<EntityComponentSystem>()},
+      renderQueue{std::make_unique<RenderQueue>()},
+      renderer{std::make_unique<GLRenderer>(renderQueue.get())},
+      screenManager{std::make_unique<ScreenManager>(renderQueue.get())}
 {
 
 }

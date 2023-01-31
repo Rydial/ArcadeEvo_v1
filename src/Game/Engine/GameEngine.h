@@ -6,16 +6,6 @@
 
 
 ////////////////////////////////////////////////////////////////////////////////
-///////////////////////////// Forward Declarations /////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-
-
-// class GameTimer;
-class RenderEngine;
-class ScreenManager;
-
-
-////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////// Game Engine //////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -24,14 +14,15 @@ class GameEngine
 {
 private:
 
+    /***************************** Smart Pointers *****************************/
+
+    std::unique_ptr<class EntityComponentSystem> ecs {};
+    std::unique_ptr<class RenderQueue> renderQueue {};
+    std::unique_ptr<class RenderEngine> renderer {};
+    std::unique_ptr<class ScreenManager> screenManager {};
+
     /******************************* Variables ********************************/
 
-    // Smart Pointers
-    // std::unique_ptr<GameTimer> gameTimer {};
-    std::unique_ptr<RenderEngine> renderer {};
-    std::unique_ptr<ScreenManager> screenManager {};
-
-    // Normal Variables
     bool engineInitialized {false};
 
 public:
