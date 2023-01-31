@@ -16,12 +16,12 @@ class RenderEngine
 {
 protected:
 
-    /******************************* Variables ********************************/
+    /****************************** Raw Pointers ******************************/
 
-    // Raw Pointers
     struct SDL_Window* window {};
 
-    // Normal Variables
+    /******************************* Variables ********************************/
+
     DeletionQueue deleteQueue {};
     uint32_t frameNumber {0};
 
