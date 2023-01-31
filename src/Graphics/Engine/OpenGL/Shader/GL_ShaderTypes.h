@@ -17,12 +17,16 @@ namespace shader::opengl
     };
 
 
+    struct vert
+    {
+        vec2 position;
+        vec2 texCoord;
+    };
+
+
     struct quad
     {
-        vec2 vPositions[4];
-        vec2 vTexCoords[4];
-        uint vTexIndex;
-        uint unused;
+        vert vertex[4];
     };
 }
 
