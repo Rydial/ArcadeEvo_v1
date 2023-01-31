@@ -14,17 +14,19 @@ class GLRenderer : public RenderEngine
 {
 private:
 
-    /******************************* Variables ********************************/
+    /******************************* Constants ********************************/
 
-    // Constants
     static constexpr uint32_t MAX_QUADRANTS {10000};
     static constexpr uint32_t VERTICES_PER_QUAD {4};
     static constexpr uint32_t INDICES_PER_QUAD {6};
 
-    // Raw Pointers
-    void* windowContext {};
+    /****************************** Raw Pointers ******************************/
 
-    // Normal Variables
+    void* windowContext {};
+    class RenderQueue* renderQueue {};
+
+    /******************************* Variables ********************************/
+
     uint32_t quadBuffer {};
     uint32_t shaderProgram {};
 
@@ -62,6 +64,10 @@ public:
     void init() override;
     void render() override;
     void cleanup() override;
+
+    /****************************** Constructors ******************************/
+
+    GLRenderer(class RenderQueue* const renderQueue);
 };
 
 

@@ -3,6 +3,7 @@
 #include "GL_Debug.h"
 #include "GL_ShaderTypes.h"
 #include "GL_Utilities.h"
+#include "RenderQueue.h"
 #include "SDL_Debug.h"
 #include "Util_Image.h"
 
@@ -11,6 +12,7 @@
 
 #include <string>
 #include <sstream>
+#include <typeinfo>
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -49,25 +51,23 @@ void GLRenderer::render()
     GL_CHECK(glClearColor(0.f, abs(sin(frameNumber / 120.f)), 0.f, 1.f));
     GL_CHECK(glClear(GL_COLOR_BUFFER_BIT));
 
-    float vertices[] { // Temp
-        -0.5f, -0.5f,      0.0f, 1.0f,      // Bottom Left
-         0.5f, -0.5f,      1.0f, 1.0f,      // Bottom Right
-         0.5f,  0.5f,      1.0f, 0.0f,      // Top Right
-        -0.5f,  0.5f,      0.0f, 0.0f,      // Top Left
-    };
-
     // Update Buffer Data
-    GL_CHECK(glNamedBufferSubData(
-        vbo,                                // Buffer
-        0,                                  // Offset
-        sizeof(vertices),                   // Size
-        vertices));                         // Data
+    void* dataPtr = GL_CHECK(glMapNamedBuffer(vbo, GL_WRITE_ONLY));
+    renderQueue->build(
+        dataPtr,
+        sizeof(shader::opengl::quad) * MAX_QUADRANTS,
+        sizeof(shader::opengl::quad));
+    GL_CHECK(glUnmapNamedBuffer(vbo));
 
     // Bind VAO
     GL_CHECK(glBindVertexArray(vao));
 
     // Draw Indexed
-    GL_CHECK(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, nullptr));
+    GL_CHECK(glDrawElements(
+        GL_TRIANGLES,
+        6 * renderQueue->getCount(),
+        GL_UNSIGNED_BYTE,
+        nullptr));
 
     // Swap Framebuffer (Double Buffer)
     SDL_GL_SwapWindow(window);
@@ -139,13 +139,13 @@ void GLRenderer::initBuffers()
     deleteQueue.emplace([this] () {GL_CHECK(glDeleteBuffers(1, &vbo));});
 
     // Initialize Vertex Buffer Data Store (Immutable)
-    uint32_t vertexSize {sizeof(float) * 4}; // Pos (2) + Tex Coords (2)
-    uint32_t maxVBOSize {vertexSize * VERTICES_PER_QUAD * MAX_QUADRANTS};
+    size_t vertexSize {sizeof(shader::opengl::vert)};
+    size_t maxVBOSize {vertexSize * VERTICES_PER_QUAD * MAX_QUADRANTS};
     GL_CHECK(glNamedBufferStorage(
         vbo,                                // Buffer Object
         maxVBOSize,                         // Data Store Size
         nullptr,                            // Data (Uninitialized)
-        GL_DYNAMIC_STORAGE_BIT));           // Flags (Enable Dynamic Update)
+        GL_MAP_WRITE_BIT));                 // Flags (Enable Map Write Access)
 
     /************************* Element Array Buffers **************************/
 
@@ -322,4 +322,12 @@ void GLRenderer::setViewportToCurrentWindow()
 
     // Set Viewport to Window Size
     setViewport(width, height);
+}
+
+/******************************** Constructors ********************************/
+
+GLRenderer::GLRenderer(RenderQueue* const renderQueue)
+    : renderQueue{renderQueue}
+{
+    DEBUG_ASSERT(renderQueue != nullptr);
 }
