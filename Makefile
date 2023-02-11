@@ -70,9 +70,9 @@ ifeq ($(shell uname), Darwin)
 
 
     # Built-in Compile Variables
-	C					:= gcc
+	C					:= clang
 	CFLAGS				:= 
-	CXX					:= g++
+	CXX					:= clang++
     CXXFLAGS			+= -std=c++20 -Wall -Wextra -pedantic -Werror
 
 
