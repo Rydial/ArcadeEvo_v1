@@ -3,12 +3,13 @@
 
 
 #include "Debug.h"
+#include "UID_Generator.h"
 
 #include <functional>
 
 
 ////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////// Render Queue //////////////////////////////////
+///////////////////////////////// Render Queue /////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
 
@@ -21,15 +22,29 @@ private:
     std::function<void()> buildRenderQueue {};
     size_t count {};
     void* data {};
+    UID dataType {};
+    UID_Generator uidGenerator {};
     size_t maxCount {};        
-    size_t typeSize {};
 
 public:
 
     /***************************** Main Functions *****************************/
 
-    void setBuilder(std::function<void()>&& func);
-    void build(void* ptr, size_t maxCount, size_t typeSize);
+    template <typename T>
+    void build(void* ptr, size_t maxCount)
+    {
+        DEBUG_ASSERT(ptr != nullptr);
+
+        data = ptr;
+        this->maxCount = maxCount;
+        dataType = uidGenerator.getUID<T>();
+
+        // Reset Count
+        count = 0;
+
+        // Fill Data Pointer
+        buildRenderQueue();
+    }
 
     /******************************* Functions ********************************/
 
@@ -42,14 +57,24 @@ public:
     template <typename T>
     T& nextSlot()
     {
-        DEBUG_ASSERT(sizeof(T) == typeSize);
+        DEBUG_ASSERT(dataType == uidGenerator.getUID<T>());
         DEBUG_ASSERT(count < maxCount);
 
         return static_cast<T*>(data)[count++];
     }
 
+    /******************************** Setters *********************************/
+
+    /*
+        Sets the builder to the given function.
+    */
+    void setBuilder(std::function<void()>&& func);
+
     /******************************** Getters *********************************/
 
+    /*
+        Returns the number of renderables 'T' added to the render queue.
+    */
     size_t getCount() const {return count;}
 };
 

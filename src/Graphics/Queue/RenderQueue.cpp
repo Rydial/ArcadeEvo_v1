@@ -2,7 +2,7 @@
 
 
 ////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////// Render Queue //////////////////////////////////
+///////////////////////////////// Render Queue /////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
 
@@ -17,20 +17,4 @@ void RenderQueue::setBuilder(std::function<void()>&& func)
 
     // Set Queue Builder
     buildRenderQueue = func;
-}
-
-
-void RenderQueue::build(void* ptr, size_t maxCount, size_t typeSize)
-{
-    DEBUG_ASSERT(ptr != nullptr);
-
-    data = ptr;
-    this->maxCount = maxCount;
-    this->typeSize = typeSize;
-
-    // Reset Count
-    count = 0;
-
-    // Fill Data Pointer
-    buildRenderQueue();
 }
