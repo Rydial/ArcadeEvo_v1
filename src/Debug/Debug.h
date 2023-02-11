@@ -71,7 +71,7 @@
 
 
 template<typename T>
-concept Printable = requires(T t)
+concept Printable = requires (T t)
 {
     {std::cout << t} -> std::same_as<std::ostream&>;
 };
