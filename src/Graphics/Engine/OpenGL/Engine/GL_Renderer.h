@@ -22,15 +22,13 @@ private:
 
     /****************************** Raw Pointers ******************************/
 
+    struct SharedData* sData {};
     void* windowContext {};
-    class RenderQueue* renderQueue {};
 
     /******************************* Variables ********************************/
 
-    uint32_t quadBuffer {};
-    uint32_t shaderProgram {};
-
     // Temp
+    uint32_t shaderProgram {};
     uint32_t ebo; // Index Buffer
     uint32_t vbo;
     uint32_t vao;
@@ -67,7 +65,7 @@ public:
 
     /****************************** Constructors ******************************/
 
-    GLRenderer(class RenderQueue* const renderQueue);
+    GLRenderer(struct SharedData* const sData);
 };
 
 
