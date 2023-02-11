@@ -16,8 +16,8 @@ private:
 
     /***************************** Smart Pointers *****************************/
 
+    std::unique_ptr<struct SharedData> sData {};
     std::unique_ptr<class EntityComponentSystem> ecs {};
-    std::unique_ptr<class RenderQueue> renderQueue {};
     std::unique_ptr<class RenderEngine> renderer {};
     std::unique_ptr<class ScreenManager> screenManager {};
 

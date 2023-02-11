@@ -4,8 +4,8 @@
 #include "EntityComponentSystem.h"
 #include "ExitCodes.h"
 #include "Renderers.h"
-#include "RenderQueue.h"
 #include "ScreenManager.h"
+#include "SharedData.h"
 
 #include <SDL2/SDL.h>
 
@@ -31,7 +31,8 @@ void GameEngine::init()
         screenManager->init();
 
         // Initialize Render Queue
-        renderQueue->setBuilder([this] () {screenManager->fillRenderQueue();});                                                           
+        sData->renderQueue.setBuilder(
+            [this] () {screenManager->fillRenderQueue();});                                                           
     }
 
     // Catch Runtime Errors (Expected Errors)
@@ -91,7 +92,7 @@ void GameEngine::run()
         {                                                                         
             DEBUG_PRINT("%\nTerminating Program.", e.what());                     
             return;                                                                 
-        }     
+        }
 
         // Catch Unexpected Errors
         catch (...)
@@ -108,6 +109,9 @@ void GameEngine::cleanup()
     // Cleanup Screens
     screenManager->cleanup();
 
+    // Cleanup Entity Component System
+    ecs->cleanup();
+
     // Cleanup Render Engine
     renderer->cleanup(); 
 
@@ -121,12 +125,14 @@ void GameEngine::cleanup()
 /******************************** Constructors ********************************/
 
 GameEngine::GameEngine()
-    : ecs{std::make_unique<EntityComponentSystem>()},
-      renderQueue{std::make_unique<RenderQueue>()},
-      renderer{std::make_unique<GLRenderer>(renderQueue.get())},
-      screenManager{std::make_unique<ScreenManager>(renderQueue.get())}
+    : sData{std::make_unique<SharedData>()},
+      ecs{std::make_unique<EntityComponentSystem>()},
+      renderer{std::make_unique<GLRenderer>(sData.get())},
+      screenManager{std::make_unique<ScreenManager>(sData.get(), ecs.get())}
 {
-
+    // Initialize Shared Data
+    sData->windowWidth = 1280;
+    sData->windowHeight = 720;
 }
 
 /******************************** Destructors *********************************/
