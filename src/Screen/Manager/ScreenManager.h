@@ -2,10 +2,11 @@
 #define SRC_SCREEN_MANAGER_H
 
 
-#include "Panel.h"
+#include "Debug.h"
+#include "ECS_Enumerations.h"
+#include "PanelElement.h"
 
 #include <vector>
-
 
 ////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////// Screen Manager ////////////////////////////////
@@ -16,44 +17,74 @@ class ScreenManager
 {
 private:
 
+    /******************************** Aliases *********************************/
+
+    using ID = uint32_t;
+
+    using ElementID = ID;
+    using PanelID = ID;
+    using ScreenID = ID;
+
     /****************************** Data Structs ******************************/
 
+    // Note: Screen Dimensions = Window Dimensions
     struct Screen
     {
-        std::vector<uint32_t> panelIDs; // ID represents Panel Vector Index
-        uint32_t currentPanelID;
+        // Grouping Data
+        std::vector<PanelID> panelIDs;
+        PanelID focusPanel;
+    };
+
+
+    struct Panel
+    {
+        // Grouping Data
+        std::vector<ElementID> elementIDs;
+        ElementID focusElement;
+
+        // Styling Data
+        float    xPosition {}, yPosition {};
+        float    width     {}, height    {};
+        uint32_t texIndex  {};
     };
 
     /****************************** Raw Pointers ******************************/
 
-    class RenderQueue* renderQueue {};
+    struct SharedData* sData {};
+    class EntityComponentSystem* ecs {};
 
     /******************************* Variables ********************************/
 
-    bool consoleActive {false};
-    uint32_t currentScreenID {};    // ID represents Screen Code
+    // bool consoleActive {false};
+    ScreenID currentScreen {};
+    std::vector<PanelElement> elements {};
     std::vector<Panel> panels {};
     std::vector<Screen> screens {};
 
     /************************** Init-Stage Functions **************************/
 
     void initConsole();
+        PanelID initMainMenuMainPanel();
     void initMainMenu();
     void initPacman();
 
     /******************************** Getters *********************************/
 
     /*
-        Return the focus panel for the current screen
+        Returns a reference to the current screen.
     */
-    Panel& getCurrentScreenPanel();
+    Screen& getCurrentScreen()
+    {
+        DEBUG_ASSERT(currentScreen < screens.size());
+        return screens.at(currentScreen);
+    };
 
     /******************************** Setters *********************************/
 
     /*
-        Set the current screen to the specified screen ID
+        Sets the current screen to the given screen ID.
     */
-    void setCurrentScreen(uint32_t id) {currentScreenID = id;}
+    // void setCurrentScreen(uint32_t id) {currentScreenID = id;}
 
 public:
 
@@ -66,7 +97,9 @@ public:
 
     /****************************** Constructors ******************************/
 
-    ScreenManager(class RenderQueue* const renderQueue);
+    ScreenManager(
+        struct SharedData* const sData,
+        class EntityComponentSystem* const ecs);
 };
 
 
