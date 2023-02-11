@@ -14,14 +14,41 @@ void EntityComponentSystem::init()
     for (size_t i {0}; i < MAX_ENTITIES; ++i)
         availableIDs.emplace(static_cast<EntityID>(i));
 
+    DEBUG_PRINT("Entity Component System Initialized.");
+
     /******************************** Testing *********************************/
 
-    // emplaceComponent<int>();
+    // auto test {create()};
+
+    // emplace<int>(test, 88);
+    // emplace<float>(test, 9.11f);
+
+    // DEBUG_PRINT("Int:%   Float:%", get<int>(test), get<float>(test));
+
+    // update<int, float>(test, [] (int& intVal, float& floatVal)
+    // {
+    //     intVal = 12;
+    //     floatVal = 42.0f;
+    // });
+
+    // const auto& [newIntVal, newFloatVal] {get<int, float>(test)};
+
+    // DEBUG_PRINT("Int:%   Float:%", newIntVal, newFloatVal);
+}
+
+
+void EntityComponentSystem::cleanup()
+{
+    // Delete Component Arrays
+    for (const auto& elem : componentPool)
+        delete elem.second;
+
+    DEBUG_PRINT("Entity Component System Cleaned.");
 }
 
 /********************************* Functions **********************************/
 
-EntityComponentSystem::EntityID EntityComponentSystem::create()
+EntityID EntityComponentSystem::create()
 {
     DEBUG_ASSERT(availableIDs.size() > 0);
 
