@@ -2,6 +2,7 @@
 
 #include "Debug.h"
 #include "SharedData.h"
+#include "UserInputs.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -62,7 +63,7 @@ void ScreenManager::initMainMenu() /* Work In Progress */
 }
 
 
-ScreenManager::PanelID ScreenManager::initMainMenuMainPanel()
+ScreenManager::PanelID ScreenManager::initMainMenuMainPanel() /* WIP */
 {
     /********************************* Panel **********************************/
 
@@ -77,6 +78,11 @@ ScreenManager::PanelID ScreenManager::initMainMenuMainPanel()
     panel.height    = sData->windowHeight;
     // panel.texIndex = ...;
 
+    /*  */
+
+    // Prevent Invalidation?
+    // elements.reserve()...
+
     /************************** Single Player Button **************************/
 
     // Initialize Single Player Button Element
@@ -84,18 +90,42 @@ ScreenManager::PanelID ScreenManager::initMainMenuMainPanel()
     size_t singleplayerBtnID {elements.size() - 1};
 
     // Set Button Style
-    singleplayerBtn.xPosition = 0.0f;
-    singleplayerBtn.yPosition = 0.0f;
-    singleplayerBtn.width     = sData->windowWidth;
-    singleplayerBtn.height    = sData->windowHeight;
+    singleplayerBtn.xPosition = sData->windowWidth / 8.f;
+    singleplayerBtn.yPosition = (sData->windowHeight / 8.f) + 150.f;
+    singleplayerBtn.width     = sData->windowWidth / 4.f;
+    singleplayerBtn.height    = sData->windowHeight / 4.f;
     // singleplayerBtn.texIndex = ...;
+
+    // Set Button Input Processor
+    singleplayerBtn.processInput = [] (const UserInput /* input */)
+    {
+        DEBUG_PRINT("Input Process Called!");
+    };
 
     // Add Button Element to Panel
     panel.elementIDs.emplace_back(singleplayerBtnID);
 
     /************************** Multi Player Button ***************************/
 
-    
+    // Initialize Multi Player Button Element
+    auto& multiplayerBtn {elements.emplace_back()};
+    size_t multiplayerBtnID {elements.size() - 1};
+
+    // Set Button Style
+    multiplayerBtn.xPosition = (sData->windowWidth / 8.f);
+    multiplayerBtn.yPosition = (sData->windowHeight / 8.f) - 150.f;
+    multiplayerBtn.width     = sData->windowWidth / 4.f;
+    multiplayerBtn.height    = sData->windowHeight / 4.f;
+    // multiplayerBtn.texIndex = ...;
+
+    // Set Button Input Processor
+    multiplayerBtn.processInput = [] (const UserInput /* input */)
+    {
+        // DEBUG_PRINT("Input Process Called!");
+    };
+
+    // Add Button Element to Panel
+    panel.elementIDs.emplace_back(multiplayerBtnID);
 
     /**************************************************************************/
 

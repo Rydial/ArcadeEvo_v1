@@ -17,9 +17,15 @@ namespace shader::opengl
     };
 
 
+    struct vec3
+    {
+        float x, y, z;
+    };
+
+
     struct vert
     {
-        vec2 position;
+        vec3 position;
         vec2 texCoord;
     };
 
@@ -27,6 +33,13 @@ namespace shader::opengl
     struct quad
     {
         vert vertex[4];
+    };
+
+    /************************** Named Shader Blocks ***************************/
+
+    struct pushconstant
+    {
+        vec2 positionScale;
     };
 }
 

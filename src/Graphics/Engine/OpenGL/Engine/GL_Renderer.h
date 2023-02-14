@@ -29,17 +29,18 @@ private:
 
     // Temp
     uint32_t shaderProgram {};
-    uint32_t ebo; // Index Buffer
-    uint32_t vbo;
-    uint32_t vao;
+    uint32_t ebo {};               // Index Buffer
+    uint32_t vbo {};               // Vertex Buffer
+    uint32_t vao {};               // Vertex Array
+    uint32_t ubo {};               // Uniform Buffer
     uint32_t texture {};
 
     /************************** Init Stage Functions **************************/
 
     void initWindow();
     void initCore();
-    void initBuffers();
     void initShaders();
+    void initBuffers();
     void initTextures();
 
     /******************************* Functions ********************************/

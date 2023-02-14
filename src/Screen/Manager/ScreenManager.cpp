@@ -6,6 +6,8 @@
 #include "ScreenCodes.h"
 #include "SharedData.h"
 
+#include <SDL2/SDL.h>
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////// Screen Manager ////////////////////////////////
@@ -36,25 +38,47 @@ void ScreenManager::init()
 
 uint32_t ScreenManager::update()
 {
-    // Panel& panel {getCurrentScreenPanel()};
+    // const Screen& currentScreen {getCurrentScreen()};
+    // Panel& focusPanel {panels.at(focusScreen.focusPanel)};
 
-    /************************* User Input Processing **************************/
+    /****************************** Mouse Hover *******************************/
 
-    // Process User Input for Current Screen
-    // uint32_t retCode {panel.processUserInput()};
+    // Get Mouse State
+    int xPos {}, yPos {};
+    SDL_GetMouseState(&xPos, &yPos);
 
-    // switch (retCode)
+    /*
+        Retrieve Mouse Hovered Element
+        Notes: Assumes there are NO overlapping elements when rendering.
+    */
+    // for (uint32_t id {0}; const auto& element : elements)
     // {
-    //     case exitcode::EXIT_PROGRAM:        // Program Exit
-    //         return exitcode::EXIT_PROGRAM;
+    //     float left {element.xPosition}, right {left + element.width};
+    //     float top {element.yPosition}, bottom {top + element.height};
 
-    //     case exitcode::CONT_PROGRAM:        // No Action
+    //     // Validate Cursor and Element Intersection (AABB Intersection)
+    //     if (xPos >= left && xPos <= right && yPos >= top && yPos <= bottom)
+    //     {
+    //         // Set Focus Element
+    //         setFocusElement(id);
     //         break;
+    //     }
 
-    //     default:                            // Switch Screen
-    //         setCurrentScreen(retCode);
-    //         break;
+    //     ++id;
     // }
+
+    /******************************** Keyboard ********************************/
+
+    // Retrieve Keyboard State
+    // [[maybe_unused]] const auto* keys {SDL_GetKeyboardState(nullptr)};
+
+    // Retrieve Keyboard Selected Element
+    // if (keys[SDL_SCANCODE_H])
+    // ...
+
+    /************************ Focus Element User Input ************************/
+
+    // Validate Focus Element
 
     /**************************** Screen Updating *****************************/
 

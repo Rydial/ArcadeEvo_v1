@@ -2,11 +2,14 @@
 
 ///////////////////////////////////// UBOs /////////////////////////////////////
 
-
+layout(std140) uniform PushConstant
+{
+  vec2 positionScale;
+};
 
 //////////////////////////////////// Inputs ////////////////////////////////////
 
-layout(location = 0) in vec2 vPosition;
+layout(location = 0) in vec3 vPosition;
 layout(location = 1) in vec2 vTexCoord;
 
 /////////////////////////////////// Outputs ////////////////////////////////////
@@ -15,8 +18,8 @@ out vec2 texCoord;
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void main ()
+void main()
 {
-  gl_Position = vec4(vPosition, 0.0, 1.0);
+  gl_Position = vec4(vPosition * vec3(positionScale, 1.0), 1.0);
   texCoord = vTexCoord;
 }
