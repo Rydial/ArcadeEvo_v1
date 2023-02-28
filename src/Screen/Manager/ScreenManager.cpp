@@ -1,12 +1,7 @@
 #include "ScreenManager.h"
 
-#include "Debug.h"
-#include "EntityComponentSystem.h"
 #include "ExitCodes.h"
-#include "ScreenCodes.h"
 #include "SharedData.h"
-
-#include <SDL2/SDL.h>
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -16,18 +11,11 @@
 
 void ScreenManager::init()
 {
-    /*
-        Notes: Order of Screen Initialization Must Follow ScreenCode Order
-    */
+    // Initialize Shared Render Queue's Builder
+    initRenderQueueBuilder();
 
-    // Initialize Console Screen
-    initConsole();
-
-    // Initialize MainMenu Screen
-    initMainMenu();
-
-    // Initialize Pacman Screen
-    initPacman();
+    // Initialize Screens
+    initScreens();
 
     // Set Focus Screen
     // setFocusScreen(screencode::MAINMENU);
@@ -36,104 +24,128 @@ void ScreenManager::init()
 }
 
 
-uint32_t ScreenManager::update()
+uint32_t ScreenManager::update() /* WIP */
 {
-    // const Screen& currentScreen {getCurrentScreen()};
-    // Panel& focusPanel {panels.at(focusScreen.focusPanel)};
+    // Clear Focus Element ID
+    focusElementID.reset();
 
-    /****************************** Mouse Hover *******************************/
+    // Retrieve and Store User Input
+    input.update();
 
-    // Get Mouse State
-    int xPos {}, yPos {};
-    SDL_GetMouseState(&xPos, &yPos);
+    // Process Input-Dependent Determinants for Focus Element
+    updateFocusElement();
 
-    /*
-        Retrieve Mouse Hovered Element
-        Notes: Assumes there are NO overlapping elements when rendering.
-    */
-    // for (uint32_t id {0}; const auto& element : elements)
-    // {
-    //     float left {element.xPosition}, right {left + element.width};
-    //     float top {element.yPosition}, bottom {top + element.height};
+    // Process Mouse Input
+    processMouseInput();
 
-    //     // Validate Cursor and Element Intersection (AABB Intersection)
-    //     if (xPos >= left && xPos <= right && yPos >= top && yPos <= bottom)
-    //     {
-    //         // Set Focus Element
-    //         setFocusElement(id);
-    //         break;
-    //     }
+    // Process Keyboard Input
+    processKeyboardInput();
 
-    //     ++id;
-    // }
-
-    /******************************** Keyboard ********************************/
-
-    // Retrieve Keyboard State
-    // [[maybe_unused]] const auto* keys {SDL_GetKeyboardState(nullptr)};
-
-    // Retrieve Keyboard Selected Element
-    // if (keys[SDL_SCANCODE_H])
+    // Update Screen
     // ...
 
-    /************************ Focus Element User Input ************************/
-
-    // Validate Focus Element
-
-    /**************************** Screen Updating *****************************/
-
-    // Update Current Screen
-    // panel.update();
-
-    /**************************************************************************/
+    DEBUG_PRINT("Focus Panel ID : %", getCurrentScreen().focusPanelID);
 
     return exitcode::CONT_PROGRAM;
 }
 
 
-void ScreenManager::fillRenderQueue() /* Work In Progress */
+void ScreenManager::cleanup()
 {
-    const Screen& focusScreen {getCurrentScreen()};
+    DEBUG_PRINT("Screen Manager Cleaned");
+}
 
-    /********************************** Temp **********************************/
+/*************************** Update-Stage Functions ***************************/
 
-    const Panel& focusPanel {panels.at(focusScreen.focusPanel)};
+void ScreenManager::updateFocusElement()
+{
+    /****************************** Mouse Hover *******************************/
 
-    // Iterate Focus Panel's Elements
-    for (const auto& elementID : focusPanel.elementIDs)
+    const auto& mousePos {input.getMousePosition()};
+
+    // Iterate Current Panel's Elements
+    for (auto elementID : getCurrentPanel().elementIDs)
     {
-        auto& element {elements.at(elementID)};
+        const auto& element {getElement(elementID)};
+        float left {element.xPos}, right  {left + element.width };
+        float top  {element.yPos}, bottom {top  - element.height};
 
-        // Add Element to Render Queue
-        element.addTo(&sData->renderQueue);
+        /*  
+            Validate Cursor and Element Intersection (AABB Intersection)
+
+            Note: Assumes no overlapping elements.
+        */
+        if (mousePos.x < left   || mousePos.x > right)
+            continue;
+        if (mousePos.y < bottom || mousePos.y > top  )
+            continue;
+
+        // Set Focus Element ID
+        focusElementID = elementID;
+        break;
     }
-
-    /**************************************************************************/
-
-    // std::vector<std::pair<uint32_t, uint32_t>> space {};
-
-    // // Iterate Current Screen's Panels
-    // for (const auto& panelID : focusScreen.panelIDs)
-    // {
-        
-    // }
 }
 
 
-void ScreenManager::cleanup()
+void ScreenManager::processMouseInput()
 {
-    DEBUG_PRINT("Screens Cleaned");
+    using namespace input;
+
+    /*************************** Left Mouse Button ****************************/
+
+    if (input.isDown(Mouse::LEFT)) /****************** Click ******************/
+    {
+        if (!input.wasDown(Mouse::LEFT))
+        {
+            if (focusElementID.has_value())
+            {
+                // Send Input to Element
+                auto& element {getElement(focusElementID.value())};
+                element.input(pair(Mouse::LEFT, State::CLICKED));
+
+                // Set Input Element
+                inputElementIDs[Mouse::LEFT] = focusElementID.value();
+            }
+
+            // Set Button as Clicked
+            input.click(Mouse::LEFT);
+        }
+    }
+    else if (input.wasDown(Mouse::LEFT)) /************** Release **************/
+    {
+        // Set Button as Released
+        input.release(Mouse::LEFT);
+        
+        auto& elementID {inputElementIDs[Mouse::LEFT]};
+
+        if (elementID.has_value())
+        {
+            // Send Input to Element
+            auto& element {getElement(elementID.value())};
+            element.input(pair(Mouse::LEFT, State::RELEASED));
+
+            // Clear Input ElementID
+            elementID.reset();
+        }
+    }
+}
+
+
+void ScreenManager::processKeyboardInput()
+{
+
 }
 
 /******************************** Constructors ********************************/
 
 ScreenManager::ScreenManager(
     SharedData* const sData,
-    EntityComponentSystem* const ecs)
+    class EntityComponentSystem* const ecs)
   : 
     sData{sData},
-    ecs{ecs}
+    ecs{ecs},
+    input{&sData->window.width, &sData->window.height}
 {
-    DEBUG_ASSERT(sData != nullptr);
-    DEBUG_ASSERT(ecs != nullptr);
+    DEBUG_ASSERT(this->sData != nullptr);
+    DEBUG_ASSERT(this->ecs != nullptr);
 }

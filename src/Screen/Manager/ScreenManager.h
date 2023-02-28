@@ -4,8 +4,11 @@
 
 #include "Debug.h"
 #include "ECS_Enumerations.h"
+#include "InputSystem.h"
 #include "PanelElement.h"
 
+#include <optional>
+#include <unordered_map>
 #include <vector>
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -19,20 +22,32 @@ private:
 
     /******************************** Aliases *********************************/
 
-    using ID = uint32_t;
+    using ID        = uint32_t;
 
+    using PanelID   = ID;
+    using ScreenID  = ID;
     using ElementID = ID;
-    using PanelID = ID;
-    using ScreenID = ID;
+
+    using ScreenMap = std::unordered_map<std::string, ID>;
 
     /****************************** Data Structs ******************************/
 
-    // Note: Screen Dimensions = Window Dimensions
-    struct Screen
+    struct InputElementIDArray
     {
-        // Grouping Data
-        std::vector<PanelID> panelIDs;
-        PanelID focusPanel;
+        using OptElementID = std::optional<ElementID>;
+
+        OptElementID key  [static_cast<uint8_t>(input::Key  ::COUNT)];
+        OptElementID mouse[static_cast<uint8_t>(input::Mouse::COUNT)];
+
+
+        OptElementID& operator[](input::Key type)
+        {
+            return key[static_cast<uint8_t>(type)];
+        }
+        OptElementID& operator[](input::Mouse type)
+        {
+            return mouse[static_cast<uint8_t>(type)];
+        }
     };
 
 
@@ -40,33 +55,55 @@ private:
     {
         // Grouping Data
         std::vector<ElementID> elementIDs;
-        ElementID focusElement;
 
         // Styling Data
-        float    xPosition {}, yPosition {};
-        float    width     {}, height    {};
-        uint32_t texIndex  {};
+        float    xPos     {}, yPos   {}, depth {};
+        float    width    {}, height {};
+        uint32_t texIndex {};
+    };
+
+
+    // Note: Screen Dimensions = Window Dimensions
+    struct Screen
+    {
+        // Grouping Data
+        std::vector<PanelID> panelIDs;
+        PanelID focusPanelID;
     };
 
     /****************************** Raw Pointers ******************************/
 
-    struct SharedData* sData {};
-    class EntityComponentSystem* ecs {};
+    struct SharedData*            const sData {};
+    class  EntityComponentSystem* const ecs   {};
+
+    /**************************** Array Variables *****************************/
+
+    std::vector<PanelElement> elements             {};
+    std::vector<Panel>        panels               {};
+    std::vector<Screen>       screens              {};
 
     /******************************* Variables ********************************/
 
     // bool consoleActive {false};
-    ScreenID currentScreen {};
-    std::vector<PanelElement> elements {};
-    std::vector<Panel> panels {};
-    std::vector<Screen> screens {};
+    ScreenID                 focusScreenID   {};
+    std::optional<ElementID> focusElementID  {};
+    InputSystem              input             ;
+    InputElementIDArray      inputElementIDs {};
 
     /************************** Init-Stage Functions **************************/
 
-    void initConsole();
-        PanelID initMainMenuMainPanel();
-    void initMainMenu();
-    void initPacman();
+    void initRenderQueueBuilder();
+    void initScreens();
+        void initConsole(const ScreenMap& screenMap);
+        void initMainMenu(const ScreenMap& screenMap);
+            PanelID initMainMenuMainPanel(const ScreenMap& screenMap);
+        void initPacman(const ScreenMap& screenMap);
+
+    /************************* Update-Stage Functions *************************/
+
+    void updateFocusElement();
+    void processMouseInput();
+    void processKeyboardInput();
 
     /******************************** Getters *********************************/
 
@@ -75,9 +112,49 @@ private:
     */
     Screen& getCurrentScreen()
     {
-        DEBUG_ASSERT(currentScreen < screens.size());
-        return screens.at(currentScreen);
+        DEBUG_ASSERT(focusScreenID < screens.size());
+        return screens.at(focusScreenID);
     };
+
+
+    /*
+        Returns a reference to the current screen's focus panel.
+    */
+    Panel& getCurrentPanel()
+    {
+        DEBUG_ASSERT(getCurrentScreen().focusPanelID < panels.size());
+        return panels.at(getCurrentScreen().focusPanelID);
+    }
+
+
+    /*
+        Returns a reference to the specified element.
+    */
+    PanelElement& getElement(ElementID id)
+    {
+        DEBUG_ASSERT(id < elements.size());
+        return elements.at(id);
+    }
+
+
+    /*
+        Returns a reference to the specified panel.
+    */
+    Panel& getPanel(PanelID id)
+    {
+        DEBUG_ASSERT(id < panels.size());
+        return panels.at(id);
+    }
+
+
+    /*
+        Returns a reference to the specified screen.
+    */
+    Screen& getScreen(ScreenID id)
+    {
+        DEBUG_ASSERT(id < screens.size());
+        return screens.at(id);
+    }
 
     /******************************** Setters *********************************/
 
@@ -92,7 +169,6 @@ public:
 
     void init();
     uint32_t update();
-    void fillRenderQueue();
     void cleanup();
 
     /****************************** Constructors ******************************/

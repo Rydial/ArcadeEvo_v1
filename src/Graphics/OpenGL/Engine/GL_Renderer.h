@@ -22,7 +22,7 @@ private:
 
     /****************************** Raw Pointers ******************************/
 
-    struct SharedData* sData {};
+    struct SharedData* const sData {};
     void* windowContext {};
 
     /******************************* Variables ********************************/

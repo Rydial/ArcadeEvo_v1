@@ -28,11 +28,7 @@ void GameEngine::init()
         ecs->init();
 
         // Initialize Screens
-        screenManager->init();
-
-        // Initialize Render Queue
-        sData->renderQueue.setBuilder(
-            [this] () {screenManager->fillRenderQueue();});                                                           
+        screenManager->init();                                                      
     }
 
     // Catch Runtime Errors (Expected Errors)
@@ -131,8 +127,8 @@ GameEngine::GameEngine()
       screenManager{std::make_unique<ScreenManager>(sData.get(), ecs.get())}
 {
     // Initialize Shared Data
-    sData->windowWidth = 1280;
-    sData->windowHeight = 720;
+    sData->window.width = 1280;
+    sData->window.height = 720;
 }
 
 /******************************** Destructors *********************************/

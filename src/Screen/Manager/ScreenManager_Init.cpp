@@ -1,18 +1,86 @@
 #include "ScreenManager.h"
 
-#include "Debug.h"
+#include "GL_ShaderTypes.h"
 #include "SharedData.h"
-#include "UserInputs.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////// Screen Manager ////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
+void ScreenManager::initRenderQueueBuilder()
+{
+    // Initialize Render Queue Builder
+    sData->renderQueue.setBuilder([this] () 
+    {
+        const Screen& focusScreen {getCurrentScreen()};
+
+        // Iterate Screen's Panels
+        for (auto panelID : focusScreen.panelIDs)
+        {
+            const Panel& panel {panels.at(panelID)};
+            float xPos {panel.xPos}, yPos {panel.yPos}, depth {panel.depth};
+            float width {panel.width}, height {panel.height};
+
+            // Add Panel to Render Queue
+            auto& quad {sData->renderQueue.nextSlot<shader::opengl::quad>()};
+
+            quad.vertex[0].position = {xPos        , yPos - height, depth};
+            quad.vertex[1].position = {xPos + width, yPos - height, depth};
+            quad.vertex[2].position = {xPos + width, yPos         , depth};
+            quad.vertex[3].position = {xPos        , yPos         , depth};
+
+            quad.vertex[0].texCoord = {0.0f, 1.0f};                        
+            quad.vertex[1].texCoord = {1.0f, 1.0f};                        
+            quad.vertex[2].texCoord = {1.0f, 0.0f};                        
+            quad.vertex[3].texCoord = {0.0f, 0.0f};                        
+
+            // Iterate Panel's Elements
+            for (auto elementID : panel.elementIDs)
+            {
+                // Add Element to Render Queue
+                getElement(elementID).addTo(&sData->renderQueue);
+            }
+        }
+    });  
+}
+
+
+void ScreenManager::initScreens()
+{
+    const auto&& newPanel {[this] ()
+    {
+        panels.emplace_back();
+        return static_cast<ID>(panels.size() - 1);
+    }};
+    const auto&& newScreen {[this] ()
+    {
+        screens.emplace_back();
+        return static_cast<ID>(screens.size() - 1);
+    }};
+    ScreenMap screenMap {
+        {"MainMenu"             , newScreen()},
+        {"MainMenu_Main"        , newPanel() },
+        {"MainMenu_Singleplayer", newPanel() },
+    };
+
+    /*
+        Assuming Screens, Panels, and Elements will remain fixed.
+    */
+
+    // Initialize Console Screen
+    initConsole(screenMap);
+
+    // Initialize MainMenu Screen
+    initMainMenu(screenMap);
+
+    // Initialize Pacman Screen
+    initPacman(screenMap);
+}
 
 /*************************** Console Init Functions ***************************/
 
-void ScreenManager::initConsole() /* Work In Progress */
+void ScreenManager::initConsole(const ScreenMap& /* screenMap */) /* WIP */
 {
     // Allocate Memory For Panels (Prevents Reference Invalidation)
     // uint32_t panelCount {1};
@@ -33,27 +101,27 @@ void ScreenManager::initConsole() /* Work In Progress */
     // Add Panel IDs
     // screen.panelIDs.emplace_back(mainPanelID);
 
-    // Set Screen Focus Panel
+    // Set Screen Focus Panel ID
     // screen.currentPanelID = mainPanelID;
 }
 
 /************************** MainMenu Init Functions ***************************/
 
-void ScreenManager::initMainMenu() /* Work In Progress */
+void ScreenManager::initMainMenu(const ScreenMap& screenMap) /* WIP */
 {
     // Initialize Screen
-    auto& screen {screens.emplace_back()};
+    auto& screen {getScreen(screenMap.at("MainMenu"))};
 
     /******************************* Main Panel *******************************/
 
     // Initialize Main Panel
-    auto mainPanelID {initMainMenuMainPanel()};
+    auto mainPanelID {initMainMenuMainPanel(screenMap)};
 
     // Initialize Main Panel and Store ID in Screen
     screen.panelIDs.emplace_back(mainPanelID);
 
-    // Set Screen Focus Panel
-    screen.focusPanel = mainPanelID;
+    // Set Screen Focus Panel ID
+    screen.focusPanelID = mainPanelID;
 
     /****************************** Other Panels ******************************/
 
@@ -63,43 +131,52 @@ void ScreenManager::initMainMenu() /* Work In Progress */
 }
 
 
-ScreenManager::PanelID ScreenManager::initMainMenuMainPanel() /* WIP */
+ScreenManager::PanelID ScreenManager::initMainMenuMainPanel(
+    const ScreenMap& screenMap) /* WIP */
 {
     /********************************* Panel **********************************/
 
     // Initialize Panel
-    [[maybe_unused]] auto& panel {panels.emplace_back()};
-    size_t panelID {panels.size() - 1};
+    PanelID panelID {screenMap.at("MainMenu_Main")};
+    auto&   panel   {getPanel(panelID)};
 
     // Set Panel Style
-    panel.xPosition = 0.0f;
-    panel.yPosition = 0.0f;
-    panel.width     = sData->windowWidth;
-    panel.height    = sData->windowHeight;
+    panel.xPos      = -(sData->window.width  * 0.5f);
+    panel.yPos      =   sData->window.height * 0.5f;
+    panel.width     =   sData->window.width;
+    panel.height    =   sData->window.height;
+    panel.depth     = 0.1f;
     // panel.texIndex = ...;
-
-    /*  */
-
-    // Prevent Invalidation?
-    // elements.reserve()...
 
     /************************** Single Player Button **************************/
 
     // Initialize Single Player Button Element
-    auto& singleplayerBtn {elements.emplace_back()};
-    size_t singleplayerBtnID {elements.size() - 1};
+    auto&     singleplayerBtn   {elements.emplace_back()};
+    ElementID singleplayerBtnID {static_cast<uint32_t>(elements.size()) - 1};
 
     // Set Button Style
-    singleplayerBtn.xPosition = sData->windowWidth / 8.f;
-    singleplayerBtn.yPosition = (sData->windowHeight / 8.f) + 150.f;
-    singleplayerBtn.width     = sData->windowWidth / 4.f;
-    singleplayerBtn.height    = sData->windowHeight / 4.f;
+    singleplayerBtn.xPos     = -(sData->window.width / 8.f);
+    singleplayerBtn.yPos     = (sData->window.height / 8.f) + 150.f;
+    singleplayerBtn.depth    = 0.f;
+    singleplayerBtn.width    = sData->window.width / 4.f;
+    singleplayerBtn.height   = sData->window.height / 4.f;
     // singleplayerBtn.texIndex = ...;
 
     // Set Button Input Processor
-    singleplayerBtn.processInput = [] (const UserInput /* input */)
+    PanelID singleplayerPanelID {screenMap.at("MainMenu_Singleplayer")};
+    singleplayerBtn.input    = [=, this] (uint32_t type)
     {
-        DEBUG_PRINT("Input Process Called!");
+        using namespace input;
+
+        switch (type)
+        {
+            case pair(Mouse::LEFT, State::CLICKED):
+                // Switch to Singleplayer Panel
+                getCurrentScreen().focusPanelID = singleplayerPanelID;
+                break;
+
+            default: break;
+        }
     };
 
     // Add Button Element to Panel
@@ -108,18 +185,19 @@ ScreenManager::PanelID ScreenManager::initMainMenuMainPanel() /* WIP */
     /************************** Multi Player Button ***************************/
 
     // Initialize Multi Player Button Element
-    auto& multiplayerBtn {elements.emplace_back()};
-    size_t multiplayerBtnID {elements.size() - 1};
+    auto&     multiplayerBtn   {elements.emplace_back()};
+    ElementID multiplayerBtnID {static_cast<uint32_t>(elements.size()) - 1};
 
     // Set Button Style
-    multiplayerBtn.xPosition = (sData->windowWidth / 8.f);
-    multiplayerBtn.yPosition = (sData->windowHeight / 8.f) - 150.f;
-    multiplayerBtn.width     = sData->windowWidth / 4.f;
-    multiplayerBtn.height    = sData->windowHeight / 4.f;
+    multiplayerBtn.xPos     = -(sData->window.width / 8.f);
+    multiplayerBtn.yPos     = (sData->window.height / 8.f) - 150.f;
+    multiplayerBtn.depth    = 0.f;
+    multiplayerBtn.width    = sData->window.width / 4.f;
+    multiplayerBtn.height   = sData->window.height / 4.f;
     // multiplayerBtn.texIndex = ...;
 
     // Set Button Input Processor
-    multiplayerBtn.processInput = [] (const UserInput /* input */)
+    multiplayerBtn.input    = [] (uint32_t /* type */)
     {
         // DEBUG_PRINT("Input Process Called!");
     };
@@ -134,7 +212,7 @@ ScreenManager::PanelID ScreenManager::initMainMenuMainPanel() /* WIP */
 
 /*************************** Pacman Init Functions ****************************/
 
-void ScreenManager::initPacman() /* Work In Progress */
+void ScreenManager::initPacman(const ScreenMap& /* screenMap */) /* WIP */
 {
 
 }

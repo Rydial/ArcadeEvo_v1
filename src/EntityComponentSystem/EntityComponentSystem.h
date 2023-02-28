@@ -18,10 +18,10 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 
-template <typename ...Args, typename Func>
+template <typename Func, typename ...Args>
 concept Callable = requires (Func&& func, Args&&... args)
 {
-    std::invoke(std::forward<Func>(func), std::forward<Args>(args)...);
+    std::invoke(std::forward<Func>(func), args...);
 };
 
 
@@ -194,7 +194,7 @@ public:
 
         Warning: Assumes specified component exists for given entity.
     */
-    template <typename ...T, Callable Func>
+    template <typename ...T, Callable<T...> Func>
     void update(const EntityID entity, Func&& func)
     {
         // Call given function with the given entity's components as arguments

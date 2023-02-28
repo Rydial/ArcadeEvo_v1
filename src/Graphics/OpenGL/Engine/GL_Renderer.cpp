@@ -47,8 +47,8 @@ void GLRenderer::render()
 
     // Update Push Constant Uniform Buffer
     shader::opengl::pushconstant pushConstant {};
-    pushConstant.positionScale.x = 1.f / (sData->windowWidth * 0.5f);
-    pushConstant.positionScale.y = 1.f / (sData->windowHeight * 0.5f);
+    pushConstant.positionScale.x = 1.f / (sData->window.width * 0.5f);
+    pushConstant.positionScale.y = 1.f / (sData->window.height * 0.5f);
 #ifdef __APPLE__
     GL_CHECK(glBufferSubData(
         GL_UNIFORM_BUFFER,          // Target
@@ -57,7 +57,7 @@ void GLRenderer::render()
         &pushConstant));            // Data
 #else // DSA
     GL_CHECK(glNamedBufferSubData(
-        ubo,          // Buffer
+        ubo,                        // Buffer
         0,                          // Offset
         sizeof(pushConstant),       // Size
         &pushConstant));            // Data
@@ -66,22 +66,7 @@ void GLRenderer::render()
     // Update Vertex Buffer
 #ifdef __APPLE__
     void* dataPtr = GL_CHECK(glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY));
-
-    shader::opengl::quad vertices[2] {};
-
-    // vertices[0].vertex[0] = {{-100.f        , 50.f - 100.f, 0.f}, {0.0f, 1.0f}};
-    // vertices[0].vertex[1] = {{-100.f + 200.f, 50.f - 100.f, 0.f}, {1.0f, 1.0f}};
-    // vertices[0].vertex[2] = {{-100.f + 200.f, 50.f        , 0.f}, {1.0f, 0.0f}};
-    // vertices[0].vertex[3] = {{-100.f        , 50.f        , 0.f}, {0.0f, 0.0f}};
-
-    vertices[1].vertex[0] = {{-100.f        , 50.f + 100.f, 0.f}, {0.0f, 1.0f}};
-    vertices[1].vertex[1] = {{-100.f + 200.f, 50.f + 100.f, 0.f}, {1.0f, 1.0f}};
-    vertices[1].vertex[2] = {{-100.f + 200.f, 50.f        , 0.f}, {1.0f, 0.0f}};
-    vertices[1].vertex[3] = {{-100.f        , 50.f        , 0.f}, {0.0f, 0.0f}};
-
-    memcpy(dataPtr, vertices, sizeof(vertices));
-
-    // sData->renderQueue.build<shader::opengl::quad>(dataPtr, MAX_QUADRANTS);
+    sData->renderQueue.build<shader::opengl::quad>(dataPtr, MAX_QUADRANTS);
     GL_CHECK(glUnmapBuffer(GL_ARRAY_BUFFER));
 #else // DSA
     void* dataPtr = GL_CHECK(glMapNamedBuffer(vbo, GL_WRITE_ONLY));
@@ -95,9 +80,8 @@ void GLRenderer::render()
     // Draw Indexed
     GL_CHECK(glDrawElements(
         GL_TRIANGLES,
-        6 * 2,
-        // 6 * sData->renderQueue.getCount(),
-        GL_UNSIGNED_BYTE,
+        INDICES_PER_QUAD * sData->renderQueue.getCount(),
+        GL_UNSIGNED_SHORT,
         nullptr));
 
     // Swap Framebuffer (Double Buffer)
@@ -140,5 +124,5 @@ void GLRenderer::setViewportToCurrentWindow()
 GLRenderer::GLRenderer(SharedData* const sData)
     : sData{sData}
 {
-    DEBUG_ASSERT(sData != nullptr);
+    DEBUG_ASSERT(this->sData != nullptr);
 }

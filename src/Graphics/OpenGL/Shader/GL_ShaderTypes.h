@@ -2,6 +2,9 @@
 #define SRC_GL_SHADER_TYPES_H
 
 
+#include "DataStructs.h"
+
+
 ////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////// SHADER ////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -11,22 +14,10 @@ namespace shader::opengl
 {
     /******************************** Structs *********************************/
     
-    struct vec2
-    {
-        float x, y;
-    };
-
-
-    struct vec3
-    {
-        float x, y, z;
-    };
-
-
     struct vert
     {
-        vec3 position;
-        vec2 texCoord;
+        data::vec3 position;
+        data::vec2 texCoord;
     };
 
 
@@ -39,7 +30,7 @@ namespace shader::opengl
 
     struct pushconstant
     {
-        vec2 positionScale;
+        data::vec2 positionScale;
     };
 }
 

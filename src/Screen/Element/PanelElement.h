@@ -2,15 +2,8 @@
 #define SRC_PANEL_ELEMENT_H
 
 
+#include <cstdint>
 #include <functional>
-
-
-////////////////////////////////////////////////////////////////////////////////
-///////////////////////////// Forward Declarations /////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-
-
-enum class UserInput : uint32_t;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -25,12 +18,12 @@ public:
     /******************************* Variables ********************************/
 
     // Functional Data
-    std::function<void(const UserInput)> processInput {};
+    std::function<void(uint32_t)> input {};
 
     // Styling Data
-    float    xPosition {}, yPosition {};
-    float    width     {}, height    {};
-    uint32_t texIndex  {};
+    float    xPos     {}, yPos   {}, depth {};
+    float    width    {}, height {};
+    uint32_t texIndex {};
 
     /***************************** Main Functions *****************************/
 

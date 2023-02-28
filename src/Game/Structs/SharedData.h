@@ -13,8 +13,9 @@
 struct SharedData
 {
     RenderQueue renderQueue;
-    uint32_t windowWidth;
-    uint32_t windowHeight;
+    struct Window {
+        uint32_t width, height;
+    } window;
 };
 
 

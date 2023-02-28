@@ -10,6 +10,7 @@
 #include <glad/glad.h>
 #include <SDL2/SDL.h>
 
+#include <climits>
 #include <vector>
 
 
@@ -25,7 +26,7 @@ void GLRenderer::initWindow()
 
     // Set Window Attributes
     SDL_CHECK(SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1)); // Double Buffer
-    SDL_CHECK(SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32));  // Depth Bit Size
+    SDL_CHECK(SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16));  // Depth Bit Size
     SDL_CHECK(SDL_GL_SetAttribute(                          // Core
         SDL_GL_CONTEXT_PROFILE_MASK,
         SDL_GL_CONTEXT_PROFILE_CORE));       
@@ -45,8 +46,8 @@ void GLRenderer::initWindow()
         "ArcadeEvo",
         SDL_WINDOWPOS_UNDEFINED,
         SDL_WINDOWPOS_UNDEFINED,
-        sData->windowWidth,
-        sData->windowHeight,
+        sData->window.width,
+        sData->window.height,
         SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE));
     deleteQueue.emplace([this] () {SDL_CHECK(SDL_DestroyWindow(window));});
     
@@ -91,12 +92,12 @@ void GLRenderer::initShaders()
     uint32_t vertexShader {
         util::loadShader(
             GL_VERTEX_SHADER,
-            "src/Graphics/Engine/OpenGL/Shader/4_6_main.vert")
+            "src/Graphics/OpenGL/Shader/4_6_main.vs")
     };
     uint32_t fragmentShader {
         util::loadShader(
             GL_FRAGMENT_SHADER,
-            "src/Graphics/Engine/OpenGL/Shader/4_6_main.frag")
+            "src/Graphics/OpenGL/Shader/4_6_main.fs")
     };
 #endif
 
@@ -214,8 +215,22 @@ void GLRenderer::initBuffers()
 #endif
     deleteQueue.emplace([this] () {GL_CHECK(glDeleteBuffers(1, &ebo));});
 
+    // Initialize Indices
+    uint16_t indices[MAX_QUADRANTS * INDICES_PER_QUAD] {};
+    DEBUG_ASSERT(MAX_QUADRANTS * INDICES_PER_QUAD < USHRT_MAX);
+
+    for (size_t i {0}; i < MAX_QUADRANTS; ++i)
+    {
+        uint16_t* const ptr {indices + (i * INDICES_PER_QUAD)};
+        ptr[0] = 0 + (VERTICES_PER_QUAD * i);
+        ptr[1] = 1 + (VERTICES_PER_QUAD * i);
+        ptr[2] = 2 + (VERTICES_PER_QUAD * i);
+        ptr[3] = 2 + (VERTICES_PER_QUAD * i);
+        ptr[4] = 3 + (VERTICES_PER_QUAD * i);
+        ptr[5] = 0 + (VERTICES_PER_QUAD * i);
+    }
+
     // Initialize Element Array Buffer (Immutable)
-    uint8_t indices[6] {0, 1, 2, 2, 3, 0};
 #ifdef __APPLE__
     GL_CHECK(glBufferData(
         GL_ELEMENT_ARRAY_BUFFER,
@@ -266,11 +281,11 @@ void GLRenderer::initBuffers()
 #endif
 
     // Specify Vertex Attribute Format
-#ifdef __APPLE__
     std::vector<size_t> offsets {
         offsetof(shader::opengl::vert, position),
         offsetof(shader::opengl::vert, texCoord)
     };
+#ifdef __APPLE__
     GL_CHECK(glVertexAttribPointer(
         0,                                  // Vertex Attribute Index
         3,                                  // Number of Values Per Vertex
@@ -292,14 +307,14 @@ void GLRenderer::initBuffers()
         3,                                  // Number of Values Per Vertex
         GL_FLOAT,                           // Value Type
         GL_FALSE,                           // Normalize Values
-        (void*) offsets[0]));               // Offset
+        offsets[0]));                       // Offset
     GL_CHECK(glVertexArrayAttribFormat(
         vao,                
         attribTexCoord,     
         2,                  
         GL_FLOAT,           
         GL_FALSE,              
-        (void*) offsets[1]));
+        offsets[1]));
 
     // Bind Vertex Attributes to VAO Binding Point
     GL_CHECK(glVertexArrayAttribBinding(vao, attribPos, vaoBindingPoint));
