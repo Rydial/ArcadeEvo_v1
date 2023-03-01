@@ -17,60 +17,40 @@ private:
 
     /****************************** Data Structs ******************************/
 
-    struct CurrentInput
+    struct MouseData
     {
-        bool key[static_cast<uint8_t>(input::Key::COUNT)];
-
-        struct Mouse
-        {
-            data::vec2 pos;
-            bool       btns[static_cast<uint8_t>(input::Mouse::COUNT)];
-        } mouse;
-
-
-        bool&       operator[](input::Key type)
-        {
-            return key[static_cast<uint8_t>(type)];
-        }
-        const bool& operator[](input::Key type) const
-        {
-            return key[static_cast<uint8_t>(type)];
-        }
-
-        bool&       operator[](input::Mouse type)
-        {
-            return mouse.btns[static_cast<uint8_t>(type)];
-        }
-        const bool& operator[](input::Mouse type) const
-        {
-            return mouse.btns[static_cast<uint8_t>(type)];
-        }
+        data::vec2   pos;
+        input::State btns[static_cast<uint8_t>(input::Mouse::COUNT)];
     };
 
 
-    struct SavedInput
+    struct KeyboardData
     {
-        bool key  [static_cast<uint8_t>(input::Key  ::COUNT)];
-        bool mouse[static_cast<uint8_t>(input::Mouse::COUNT)];
+        input::State key[static_cast<uint8_t>(input::Key::COUNT)];
+    };
 
-        bool&       operator[](input::Key type)
-        {
-            return key[static_cast<uint8_t>(type)];
-        }
-        const bool& operator[](input::Key type) const
-        {
-            return key[static_cast<uint8_t>(type)];
-        }
 
-        bool&       operator[](input::Mouse type)
+    struct InputData
+    {
+        MouseData    mouse;
+        KeyboardData keyboard;
+
+        input::State&       operator[](input::Mouse type)
         {
-            return mouse[static_cast<uint8_t>(type)];
+            return mouse.btns[static_cast<uint8_t>(type)];
         }
-        const bool& operator[](input::Mouse type) const
+        const input::State& operator[](input::Mouse type) const
         {
-            return mouse[static_cast<uint8_t>(type)];
+            return mouse.btns[static_cast<uint8_t>(type)];
         }
-    
+        input::State&       operator[](input::Key type)
+        {
+            return keyboard.key[static_cast<uint8_t>(type)];
+        }
+        const input::State& operator[](input::Key type) const
+        {
+            return keyboard.key[static_cast<uint8_t>(type)];
+        }
     };
 
     /****************************** Raw Pointers ******************************/
@@ -80,8 +60,25 @@ private:
 
     /******************************* Variables ********************************/
 
-    CurrentInput current {};
-    SavedInput   saved   {};
+    InputData input {};
+
+    /************************* Update-Stage Functions *************************/
+
+    void updateMouse();
+    void updateKeyboard();
+
+    /******************************* Functions ********************************/
+
+    /*
+    
+    */
+    void processMouseButton(input::Mouse type, bool clicked);
+
+
+    /*
+    
+    */
+    void processKeyboardKey(input::Key   type, bool pressed);
 
 public:
 
@@ -92,41 +89,33 @@ public:
     /******************************* Functions ********************************/
 
     /*
-        Clicks the specified mouse input down.
+        Returns whether the specified mouse input has been clicked down.
     */
-    void click(input::Mouse type) {saved[type] = true;}
-
-
-    /*
-        Returns whether the specified input is being clicked/pressed down.
-    */
-    bool isDown(input::Mouse type) const {return current[type];}
-    bool isDown(input::Key   type) const {return current[type];}
-
-
-    /*
-        Presses the specified keyboard input down.
-    */
-    // void press(/* input::Key type */)
-    // {
-
-    // }
-
-
-    /*
-        Release the specified clicked/pressed down input.
-    */
-    void release(input::Mouse type) {saved[type] = false;}
-    void release(input::Key /* type */)
+    bool isClicked(input::Mouse type) const
     {
-        
+        return input[type] == input::State::CLICKED;
+    }
+
+
+    /*
+        Returns whether the specified key input has been pressed down.
+    */
+    bool isPressed(input::Key type) const
+    {
+        return input[type] == input::State::CLICKED;
     }
 
     /*
-        Returns whether the specified input was previously clicked/pressed down.
+        Returns whether the specified input has been released.
     */
-    bool wasDown(input::Mouse type) const {return saved[type];}
-    bool wasDown(input::Key   type) const {return saved[type];}
+    bool isReleased(input::Mouse type) const
+    {
+        return input[type] == input::State::RELEASED;
+    }
+    bool isReleased(input::Key   type) const
+    {
+        return input[type] == input::State::RELEASED;
+    }
 
     /******************************** Getters *********************************/
 
@@ -135,7 +124,7 @@ public:
     */
     const data::vec2& getMousePosition() const
     {
-        return current.mouse.pos;
+        return input.mouse.pos;
     }
 
     /****************************** Constructors ******************************/
