@@ -18,7 +18,7 @@ public:
     /******************************* Variables ********************************/
 
     // Functional Data
-    std::function<void(uint32_t)> input {};
+    std::function<void()> input {};
 
     // Styling Data
     float    xPos     {}, yPos   {}, depth {};
