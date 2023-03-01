@@ -32,25 +32,6 @@ private:
 
     /****************************** Data Structs ******************************/
 
-    struct InputElementIDArray
-    {
-        using OptElementID = std::optional<ElementID>;
-
-        OptElementID key  [static_cast<uint8_t>(input::Key  ::COUNT)];
-        OptElementID mouse[static_cast<uint8_t>(input::Mouse::COUNT)];
-
-
-        OptElementID& operator[](input::Key type)
-        {
-            return key[static_cast<uint8_t>(type)];
-        }
-        OptElementID& operator[](input::Mouse type)
-        {
-            return mouse[static_cast<uint8_t>(type)];
-        }
-    };
-
-
     struct Panel
     {
         // Grouping Data
@@ -88,7 +69,6 @@ private:
     ScreenID                 focusScreenID   {};
     std::optional<ElementID> focusElementID  {};
     InputSystem              input             ;
-    InputElementIDArray      inputElementIDs {};
 
     /************************** Init-Stage Functions **************************/
 
@@ -102,8 +82,6 @@ private:
     /************************* Update-Stage Functions *************************/
 
     void updateFocusElement();
-    void processMouseInput();
-    void processKeyboardInput();
 
     /******************************** Getters *********************************/
 
@@ -167,9 +145,9 @@ public:
 
     /***************************** Main Functions *****************************/
 
-    void init();
+    void     init();
     uint32_t update();
-    void cleanup();
+    void     cleanup();
 
     /****************************** Constructors ******************************/
 

@@ -142,9 +142,9 @@ ScreenManager::PanelID ScreenManager::initMainMenuMainPanel(
 
     // Set Panel Style
     panel.xPos      = -(sData->window.width  * 0.5f);
-    panel.yPos      =   sData->window.height * 0.5f;
-    panel.width     =   sData->window.width;
-    panel.height    =   sData->window.height;
+    panel.yPos      = sData->window.height * 0.5f;
+    panel.width     = sData->window.width;
+    panel.height    = sData->window.height;
     panel.depth     = 0.1f;
     // panel.texIndex = ...;
 
@@ -164,18 +164,16 @@ ScreenManager::PanelID ScreenManager::initMainMenuMainPanel(
 
     // Set Button Input Processor
     PanelID singleplayerPanelID {screenMap.at("MainMenu_Singleplayer")};
-    singleplayerBtn.input    = [=, this] (uint32_t type)
+    singleplayerBtn.input    = [=, this] ()
     {
         using namespace input;
 
-        switch (type)
+        if (input.isClicked(Mouse::LEFT))
         {
-            case pair(Mouse::LEFT, State::CLICKED):
-                // Switch to Singleplayer Panel
-                getCurrentScreen().focusPanelID = singleplayerPanelID;
-                break;
+            DEBUG_PRINT("Switching to Singleplayer Panel");
 
-            default: break;
+            // Switch to Singleplayer Panel
+            getCurrentScreen().focusPanelID = singleplayerPanelID;
         }
     };
 
@@ -197,10 +195,10 @@ ScreenManager::PanelID ScreenManager::initMainMenuMainPanel(
     // multiplayerBtn.texIndex = ...;
 
     // Set Button Input Processor
-    multiplayerBtn.input    = [] (uint32_t /* type */)
-    {
-        // DEBUG_PRINT("Input Process Called!");
-    };
+    // multiplayerBtn.input    = [] ()
+    // {
+    //     // DEBUG_PRINT("Input Process Called!");
+    // };
 
     // Add Button Element to Panel
     panel.elementIDs.emplace_back(multiplayerBtnID);

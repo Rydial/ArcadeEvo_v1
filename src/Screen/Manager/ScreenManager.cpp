@@ -26,20 +26,11 @@ void ScreenManager::init()
 
 uint32_t ScreenManager::update() /* WIP */
 {
-    // Clear Focus Element ID
-    focusElementID.reset();
-
     // Retrieve and Store User Input
     input.update();
 
-    // Process Input-Dependent Determinants for Focus Element
+    // Update Focus Element & Process User Input
     updateFocusElement();
-
-    // Process Mouse Input
-    processMouseInput();
-
-    // Process Keyboard Input
-    processKeyboardInput();
 
     // Update Screen
     // ...
@@ -59,6 +50,9 @@ void ScreenManager::cleanup()
 
 void ScreenManager::updateFocusElement()
 {
+    // Clear Focus Element ID
+    focusElementID.reset();
+
     /****************************** Mouse Hover *******************************/
 
     const auto& mousePos {input.getMousePosition()};
@@ -84,56 +78,14 @@ void ScreenManager::updateFocusElement()
         focusElementID = elementID;
         break;
     }
-}
 
+    /**************************************************************************/
 
-void ScreenManager::processMouseInput()
-{
-    using namespace input;
-
-    /*************************** Left Mouse Button ****************************/
-
-    if (input.isDown(Mouse::LEFT)) /****************** Click ******************/
+    if (focusElementID.has_value())
     {
-        if (!input.wasDown(Mouse::LEFT))
-        {
-            if (focusElementID.has_value())
-            {
-                // Send Input to Element
-                auto& element {getElement(focusElementID.value())};
-                element.input(pair(Mouse::LEFT, State::CLICKED));
-
-                // Set Input Element
-                inputElementIDs[Mouse::LEFT] = focusElementID.value();
-            }
-
-            // Set Button as Clicked
-            input.click(Mouse::LEFT);
-        }
-    }
-    else if (input.wasDown(Mouse::LEFT)) /************** Release **************/
-    {
-        // Set Button as Released
-        input.release(Mouse::LEFT);
-        
-        auto& elementID {inputElementIDs[Mouse::LEFT]};
-
-        if (elementID.has_value())
-        {
-            // Send Input to Element
-            auto& element {getElement(elementID.value())};
-            element.input(pair(Mouse::LEFT, State::RELEASED));
-
-            // Clear Input ElementID
-            elementID.reset();
-        }
-    }
-}
-
-
-void ScreenManager::processKeyboardInput()
-{
-
+        // Send Input to Focus Element
+        getElement(focusElementID.value()).input();
+    }    
 }
 
 /******************************** Constructors ********************************/
